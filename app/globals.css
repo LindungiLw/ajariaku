@@ -1,0 +1,349 @@
+@import "tailwindcss";
+
+/* =========================================================
+   Ajari Aku — design system (from DESIGN.md)
+   Soft-minimalism · Clear-Sky blue · amber reward
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* surfaces */
+  --bg: #f8faff;
+  --surface: #ffffff;
+  --surface-2: #f2f6fc;
+  --surface-3: #e8eef7;
+
+  /* text */
+  --ink: #14202e;
+  --ink-soft: #55677a;
+
+  /* lines */
+  --line: #dfe6f0;
+
+  /* brand (team palette) */
+  --primary: #1591dc;
+  --primary-deep: #2c5ead;
+  --primary-bright: #4bb8fa;
+  --tint: #c4e2f5;
+  --on-primary: #ffffff;
+
+  /* CTA/tombol gradient — digelapkan agar teks putih ≥4.5:1 (WCAG AA) di seluruh area gradien. */
+  --cta-1: #1478bd;
+  --cta-2: #2c5ead;
+
+  /* semantic */
+  --reward: #f5a524;          /* XP / gamification — untuk IKON/isian */
+  --reward-ink: #b45309;      /* versi TEKS kecil (kontras AA di latar terang) */
+  --node-good: #22a06b;
+  --node-mid: #e7b008;
+  --node-weak: #e5484d;
+  --error: #ba1a1a;
+
+  /* elevation (blue-tinted, per DESIGN.md) */
+  --shadow-1: 0 4px 20px rgba(21, 145, 220, 0.10);
+  --shadow-2: 0 10px 30px rgba(21, 145, 220, 0.16);
+
+  --r-card: 14px;
+  --r-pill: 9999px;
+  --ring: rgba(21, 145, 220, 0.45);
+
+  /* Peta "Semesta Matematika" — versi TERANG (langit SIANG, cukup pekat agar konten kontras) */
+  --map-top: #9ec5f2;                    /* langit siang, biru jelas (bukan pucat) */
+  --map-bot: #d3e8fb;                    /* horizon biru muda (bukan putih) */
+  --map-neb-1: rgba(21, 145, 220, 0.16); /* nebula biru */
+  --map-neb-2: rgba(124, 92, 255, 0.12); /* nebula ungu */
+  --map-neb-3: rgba(190, 120, 255, 0.10);/* nebula magenta (aksen halus) */
+  --map-star: rgba(255, 255, 255, 0.85); /* sparkle putih — pop di langit biru */
+  --map-symbol: rgba(20, 90, 160, 0.2);  /* simbol π Σ √ mengambang (biru lebih tegas) */
+  --map-path: #1591dc;                   /* jalur menyala */
+  --map-path-core: rgba(255, 255, 255, 0.7);
+  --map-horizon: rgba(21, 145, 220, 0.2);
+}
+
+/* Default is always LIGHT (white). Dark mode applies only via the toggle. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f172a; --surface: #1e293b; --surface-2: #24344c; --surface-3: #2d3f59;
+  --ink: #e9f1fb; --ink-soft: #9db2ca; --line: rgba(124, 179, 232, 0.18);
+  --primary: #4bb8fa; --primary-deep: #7cc6fb; --primary-bright: #6cc4fb; --tint: rgba(75, 184, 250, 0.16);
+  --cta-1: #1878bf; --cta-2: #2f66ad; --reward-ink: #fcd34d;
+  --shadow-1: 0 6px 24px rgba(0, 0, 0, 0.35); --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.5);
+
+  /* Peta "Semesta Matematika" — versi GELAP (kosmik) */
+  --map-top: #0a0a1e;                    /* luar angkasa dalam (indigo) */
+  --map-bot: #1a2452;                    /* horizon biru-ungu */
+  --map-neb-1: rgba(70, 192, 255, 0.22); /* nebula cyan (lebih hidup) */
+  --map-neb-2: rgba(150, 90, 255, 0.26); /* nebula ungu (lebih vivid) */
+  --map-neb-3: rgba(255, 120, 210, 0.13);/* nebula magenta (aksen hangat) */
+  --map-star: rgba(226, 240, 255, 0.92); /* bintang terang */
+  --map-symbol: rgba(150, 200, 255, 0.17);
+  --map-path: #58c6ff;                   /* jalur neon lebih terang */
+  --map-path-core: rgba(233, 245, 255, 0.9);
+  --map-horizon: rgba(90, 200, 255, 0.24);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f8faff; --surface: #ffffff; --surface-2: #f2f6fc; --surface-3: #e8eef7;
+  --ink: #14202e; --ink-soft: #55677a; --line: #dfe6f0;
+  --primary: #1591dc; --primary-deep: #2c5ead; --primary-bright: #4bb8fa; --tint: #c4e2f5;
+  --cta-1: #1478bd; --cta-2: #2c5ead; --reward-ink: #b45309;
+  --shadow-1: 0 4px 20px rgba(21, 145, 220, 0.10); --shadow-2: 0 10px 30px rgba(21, 145, 220, 0.16);
+}
+
+/* expose tokens as Tailwind utilities (bg-surface, text-ink, text-primary, font-display…) */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
+  --color-primary-bright: var(--primary-bright);
+  --color-tint: var(--tint);
+  --color-on-primary: var(--on-primary);
+  --color-reward: var(--reward);
+  --color-node-good: var(--node-good);
+  --color-node-mid: var(--node-mid);
+  --color-node-weak: var(--node-weak);
+
+  --font-display: var(--font-quicksand), "Quicksand", system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+
+  --radius-card: 20px;
+}
+
+/* ---- base ---- */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background:
+    radial-gradient(110% 45% at 100% -12%, color-mix(in srgb, var(--primary-bright) 7%, transparent), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: color-mix(in srgb, var(--primary) 28%, transparent); }
+:where(a, button, input, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+/* ---- reusable component classes ---- */
+.aa-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  /* Crisp & modern: shadow flat/tipis (bukan glow pillowy) → kesan sengaja didesain, tak "AI-default". */
+  box-shadow: 0 1px 2px rgba(15, 30, 60, 0.05), 0 4px 12px -8px rgba(15, 30, 60, 0.08);
+}
+.aa-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-display); font-weight: 700; font-size: 15px;
+  color: var(--on-primary); border: 0; cursor: pointer;
+  border-radius: var(--r-pill); padding: 13px 22px;
+  background: linear-gradient(140deg, var(--cta-1), var(--cta-2));
+  box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--primary) 85%, transparent);
+  transition: transform .12s ease, box-shadow .2s ease;
+}
+.aa-btn:hover { transform: translateY(-1px); }
+.aa-btn:active { transform: translateY(0); }
+.aa-btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-display); font-weight: 700; font-size: 15px;
+  color: var(--primary-deep); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-pill); padding: 12px 20px;
+  transition: border-color .15s ease;
+}
+.aa-btn-ghost:hover { border-color: var(--primary); }
+.aa-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--ink-soft);
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: var(--r-pill); padding: 7px 13px;
+}
+/* Chip pilihan (gelar/jenjang/kategori): base + .is-on aktif. Satu sumber gaya "terpilih". */
+.aa-chip-select {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 14px; font-weight: 700; color: var(--ink-soft); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-pill); padding: 8px 14px;
+  transition: border-color .15s, transform .15s, background .15s, color .15s;
+}
+.aa-chip-select:hover { border-color: var(--primary); }
+.aa-chip-select.is-on {
+  border-color: transparent; color: #fff;
+  background: linear-gradient(to bottom right, var(--cta-1), var(--cta-2));
+}
+/* Chip pilih RINGKAS (onboarding: Panggilan/Jenjang) — lebih padat, terpilih jelas bedanya. */
+.aa-chip-pick {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--ink-soft); cursor: pointer;
+  background: var(--surface); border: 1.5px solid var(--line);
+  border-radius: var(--r-pill); padding: 6px 13px;
+  transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+}
+.aa-chip-pick:hover { border-color: var(--primary); color: var(--ink); }
+.aa-chip-pick.is-on {
+  border-color: transparent; color: #fff;
+  background: linear-gradient(140deg, var(--cta-1), var(--cta-2));
+  box-shadow: 0 4px 11px -4px color-mix(in srgb, var(--primary) 75%, transparent);
+}
+.aa-pill-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; color: var(--primary-deep);
+  background: var(--tint); border-radius: var(--r-pill); padding: 5px 11px;
+}
+/* XP / progress */
+.aa-track { height: 12px; border-radius: var(--r-pill); background: var(--surface-3); overflow: hidden; }
+.aa-fill { height: 100%; border-radius: var(--r-pill); background: linear-gradient(90deg, var(--primary-bright), var(--primary)); transition: width .6s cubic-bezier(.22,.9,.31,1); }
+.aa-fill-xp { background: linear-gradient(90deg, #ffcf6b, var(--reward)); }
+
+.font-display { font-family: var(--font-display); }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* =========================================================
+   Motion — bikin UI hidup (light gamification, tetap kalem)
+   ========================================================= */
+@keyframes aa-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes aa-pop {
+  0% { transform: scale(.6); opacity: 0; }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes aa-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes aa-wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-7deg); }
+  75% { transform: rotate(7deg); }
+}
+@keyframes aa-xpfloat {
+  0% { opacity: 0; transform: translateY(8px) scale(.9); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-30px) scale(1.05); }
+}
+@keyframes aa-confetti {
+  0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--cx)), calc(-50% + var(--cy))) rotate(var(--cr)); }
+}
+@keyframes aa-shine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes aa-twinkle {
+  0%, 100% { opacity: .2; }
+  50% { opacity: 1; }
+}
+@keyframes aa-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(6deg); }
+}
+/* maskot: lompat idle (energik) + lompat pindah-node (arc) */
+@keyframes aa-hop {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  28% { transform: translateY(-9px) scaleY(1.06); }
+  52% { transform: translateY(0) scaleY(0.9); }
+  72% { transform: translateY(-3px) scaleY(1); }
+}
+@keyframes aa-hoparc {
+  0% { transform: translateY(0) scale(1); }
+  22% { transform: translateY(-42px) scaleX(0.92) scaleY(1.1); }
+  55% { transform: translateY(-26px); }
+  100% { transform: translateY(0) scaleX(1.08) scaleY(0.9); }
+}
+/* jalur peta: "menggambar sendiri" saat masuk + kilau energi mengalir ke atas */
+@keyframes aa-pathdraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes aa-pathflow { to { stroke-dashoffset: -50; } }
+/* mode "main" (ala Kahoot): bentuk mengambang + pop besar */
+@keyframes aa-gamefloat {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-16px) rotate(180deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+@keyframes aa-pop-big {
+  0% { transform: scale(.4); opacity: 0; }
+  55% { transform: scale(1.18); }
+  100% { transform: scale(1); opacity: 1; }
+}
+/* peta: bintang jatuh, partikel naik, halo simpul aktif */
+@keyframes aa-shoot {
+  0% { transform: translate(0, 0) rotate(18deg); opacity: 0; }
+  10%, 55% { opacity: .9; }
+  100% { transform: translate(180px, 120px) rotate(18deg); opacity: 0; }
+}
+@keyframes aa-sparkrise {
+  0% { transform: translateY(10px) scale(.5); opacity: 0; }
+  20% { opacity: .85; }
+  100% { transform: translateY(-96px) scale(1); opacity: 0; }
+}
+@keyframes aa-halo {
+  0%, 100% { transform: scale(.8); opacity: .5; }
+  55% { transform: scale(1.35); opacity: 0; }
+}
+
+.animate-rise { animation: aa-rise .5s cubic-bezier(.22,.9,.31,1) both; }
+.animate-pop { animation: aa-pop .42s cubic-bezier(.34,1.4,.5,1) both; }
+.animate-float { animation: aa-float 4.5s ease-in-out infinite; }
+.aa-twinkle { animation: aa-twinkle 3s ease-in-out infinite; }
+.aa-drift { animation: aa-drift 7s ease-in-out infinite; }
+.aa-hop { animation: aa-hop 1.5s ease-in-out infinite; }
+.aa-hoparc { animation: aa-hoparc 0.72s cubic-bezier(.3, 0, .25, 1) 1 both; }
+.aa-pathdraw { stroke-dasharray: 1; animation: aa-pathdraw .55s ease-out both; }
+.aa-pathflow { stroke-dasharray: 5 20; animation: aa-pathflow 1.2s linear infinite; }
+.aa-pop-big { animation: aa-pop-big .5s cubic-bezier(.34, 1.5, .5, 1) both; }
+.aa-shoot { animation: aa-shoot 7s ease-in infinite; }
+.aa-spark { animation: aa-sparkrise linear infinite; }
+.aa-halo { animation: aa-halo 2.4s ease-out infinite; }
+
+/* simpul peta bergaya token 3D (ala Candy Crush): tepi tebal + bisa "ditekan" */
+.aa-token {
+  box-shadow: 0 var(--edge-h, 5px) 0 var(--edge-c, transparent), var(--tok-glow, 0 0 #0000);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.aa-tokbtn:hover .aa-token { transform: translateY(2px); box-shadow: 0 2px 0 var(--edge-c, transparent), var(--tok-glow, 0 0 #0000); }
+.aa-tokbtn:active .aa-token { transform: translateY(4px); box-shadow: 0 1px 0 var(--edge-c, transparent), var(--tok-glow, 0 0 #0000); }
+.animate-wiggle { animation: aa-wiggle .55s ease-in-out; }
+.animate-xpfloat { animation: aa-xpfloat .95s ease-out both; }
+
+/* stagger entrance untuk anak-anak container */
+.stagger > * { animation: aa-rise .5s cubic-bezier(.22,.9,.31,1) both; }
+.stagger > *:nth-child(1) { animation-delay: .04s; }
+.stagger > *:nth-child(2) { animation-delay: .10s; }
+.stagger > *:nth-child(3) { animation-delay: .16s; }
+.stagger > *:nth-child(4) { animation-delay: .22s; }
+.stagger > *:nth-child(5) { animation-delay: .28s; }
+.stagger > *:nth-child(6) { animation-delay: .34s; }
+
+/* teks gradient dengan kilau lembut */
+.aa-shine {
+  background: linear-gradient(100deg, var(--primary-deep), var(--primary), var(--primary-bright), var(--primary));
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: aa-shine 6s linear infinite;
+}
+
+/* confetti piece */
+.aa-confetti-piece {
+  position: absolute; left: 50%; top: 50%;
+  height: 9px; width: 9px; border-radius: 2px;
+  animation: aa-confetti .9s ease-out forwards;
+}
+
+/* interaksi kartu */
+.aa-lift { transition: transform .16s ease, box-shadow .2s ease; }
+.aa-lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
