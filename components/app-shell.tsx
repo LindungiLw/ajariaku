@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Info, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { A11yToggle } from "@/components/a11y-toggle";
 import { Star, Flame } from "@/components/brand-icons";
 import { IconBeranda, IconBelajar, IconAjari, IconKelas, IconProgres } from "@/components/nav-icons";
 import { useProfil } from "@/components/profil-pengajar";
@@ -214,7 +213,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex flex-none items-center gap-2">
             <StreakChip />
             <XpStar />
-            <A11yToggle className="hidden sm:grid" />
             <ThemeToggle />
             <ProfilButton />
           </div>

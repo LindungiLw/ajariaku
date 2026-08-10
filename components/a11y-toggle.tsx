@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Accessibility, Type, Space, Zap, Link as LinkIcon, X } from "lucide-react";
+import { Type, Space, Zap, Link as LinkIcon, X } from "lucide-react";
+
+const UniversalAccessIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="4" r="2" />
+    <path d="M12 6v6" />
+    <path d="M4 8h16" />
+    <path d="m12 12-4 9" />
+    <path d="m12 12 4 9" />
+  </svg>
+);
 
 export function A11yToggle({ className = "" }: { className?: string }) {
   const [open, setOpen] = useState(false);
@@ -39,8 +49,19 @@ export function A11yToggle({ className = "" }: { className?: string }) {
         setOpen(false);
       }
     };
-    if (open) document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+      }
+    };
+    if (open) {
+      document.addEventListener("mousedown", handleOutside);
+      document.addEventListener("keydown", handleEscape);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, [open]);
 
   const toggle = (key: string, state: boolean, setter: (v: boolean) => void) => {
@@ -67,28 +88,32 @@ export function A11yToggle({ className = "" }: { className?: string }) {
       <button
         onClick={() => setOpen(!open)}
         aria-label="Pengaturan Aksesibilitas"
+        aria-expanded={open}
+        aria-controls="a11y-menu"
         title="Aksesibilitas"
-        className={`grid h-10 w-10 flex-none place-items-center rounded-full border border-line bg-surface text-ink transition-all hover:-translate-y-0.5 hover:border-[var(--primary)] hover:text-[var(--primary)] shadow-sm ${className} ${open ? "border-[var(--primary)] text-[var(--primary)]" : ""}`}
+        className={`grid h-12 w-12 flex-none place-items-center rounded-full bg-[var(--primary)] text-white transition-all hover:-translate-y-1 hover:brightness-110 shadow-lg ${className} ${open ? "ring-4 ring-[var(--primary)]/30" : ""}`}
       >
-        <Accessibility size={20} strokeWidth={2.5} />
+        <UniversalAccessIcon />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-line bg-surface p-2 shadow-lg z-50">
+        <div id="a11y-menu" className="absolute left-0 bottom-full mb-3 w-56 rounded-2xl border border-line bg-surface p-2 shadow-2xl z-50">
           <div className="flex items-center justify-between px-2 pb-2 pt-1 border-b border-line mb-1">
             <span className="text-xs font-bold uppercase tracking-wider text-ink-soft">Aksesibilitas</span>
-            <button onClick={() => setOpen(false)} className="text-ink-soft hover:text-ink"><X size={14} /></button>
+            <button onClick={() => setOpen(false)} aria-label="Tutup menu aksesibilitas" className="text-ink-soft hover:text-ink"><X size={14} aria-hidden="true" /></button>
           </div>
           
           <div className="flex flex-col">
             {OPTIONS.map((opt) => (
               <button
                 key={opt.id}
+                role="switch"
+                aria-checked={opt.state}
                 onClick={() => toggle(opt.id, opt.state, opt.setter)}
                 className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-surface-2"
               >
                 <div className={`grid h-8 w-8 flex-none place-items-center rounded-lg transition-colors ${opt.state ? "bg-[var(--primary)] text-white" : "bg-surface-3 text-ink-soft"}`}>
-                  <opt.icon size={16} strokeWidth={opt.state ? 3 : 2} />
+                  <opt.icon size={16} strokeWidth={opt.state ? 3 : 2} aria-hidden="true" />
                 </div>
                 <div className="flex-1 text-left">
                   <p className="text-[13px] font-bold text-ink">{opt.label}</p>

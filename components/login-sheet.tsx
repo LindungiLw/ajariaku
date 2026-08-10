@@ -76,14 +76,18 @@ function LoginSheet({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-black/40 p-4" onClick={onClose}>
       <div className="aa-card w-full max-w-sm p-5 sm:p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 flex-none place-items-center overflow-hidden rounded-xl bg-white ring-1 ring-line">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-10 w-10 flex-none place-items-center overflow-hidden rounded-[14px] bg-white ring-1 ring-line">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Icon Ajari Aku" width={30} height={30} className="h-7 w-7" />
+            </span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Ajari Aku" width={30} height={30} className="h-[30px] w-[30px]" />
-          </span>
+            <img src="/ajariaku.png" alt="Ajari Aku" className="h-[110px] w-auto object-contain -my-[35px]" />
+          </div>
           <div>
             <p className="font-display text-lg font-extrabold leading-tight">Masuk untuk simpan progres</p>
-            <p className="text-[13px] text-ink-soft">Progresmu di perangkat ini tetap aman dan ikut ke akunmu.</p>
+            <p className="mt-0.5 text-[13px] text-ink-soft">Progresmu di perangkat ini tetap aman dan ikut ke akunmu.</p>
           </div>
         </div>
 

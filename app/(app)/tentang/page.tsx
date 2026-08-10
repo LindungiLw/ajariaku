@@ -138,51 +138,6 @@ export default function TentangPage() {
         </div>
       </section>
 
-      {/* cara kerja teknis */}
-      <section className="aa-card p-5 md:p-6">
-        <h2 className="flex items-center gap-2 font-display text-lg font-extrabold">
-          <Cpu size={18} className="text-[var(--primary)]" /> Cara kerja teknis
-        </h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <Fakta ikon={Globe} judul="Local-first (progres di perangkat)">
-            Progres tersimpan di perangkat Anda (localStorage). Login Google bersifat opsional,
-            hanya untuk sinkronisasi antar-perangkat.
-          </Fakta>
-          <Fakta ikon={BookCheck} judul="RAG grounding">
-            Tiap sesi mengambil materi paling relevan dari kurikulum untuk menjaga jawaban tetap
-            akurat & sesuai konteks.
-          </Fakta>
-          <Fakta ikon={Cpu} judul="Murid AI (Gemini)">
-            Ditenagai model AI dengan persona murid; kunci API disimpan aman di server, tidak
-            pernah ke browser.
-          </Fakta>
-          <Fakta ikon={ShieldCheck} judul="Tetap jalan saat offline">
-            Bila koneksi/kuota bermasalah, mode luring memakai skrip cadangan agar belajar tidak
-            terhenti.
-          </Fakta>
-        </div>
-
-        {/* diagram alur ringkas */}
-        <div className="relative mt-4">
-          <div className="overflow-x-auto">
-            <div className="flex min-w-[520px] items-stretch gap-2">
-              <FlowBox judul="Perangkat" sub="localStorage (sumber utama)" />
-              <FlowArrow />
-              <FlowBox judul="/api/ajari" sub="rate-limit · origin · safety" />
-              <FlowArrow />
-              <FlowBox judul="RAG" sub="materi terverifikasi" />
-              <FlowArrow />
-              <FlowBox judul="Murid AI" sub="Gemini" />
-            </div>
-          </div>
-          {/* petunjuk bisa digeser di layar sempit */}
-          <span className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[var(--surface)] to-transparent sm:hidden" />
-        </div>
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
-          Firestore hanya mencerminkan progres saat login (opsional). Apabila AI gagal → mode luring
-          (skrip cadangan) agar belajar tidak terhenti.
-        </p>
-      </section>
 
       {/* inklusivitas / SDG 4 */}
       <section className="aa-card p-5 md:p-6">
@@ -206,34 +161,3 @@ export default function TentangPage() {
   );
 }
 
-function Fakta({
-  ikon: Ikon,
-  judul,
-  children,
-}: {
-  ikon: typeof Globe;
-  judul: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-line bg-surface-2 p-4">
-      <span className="flex items-center gap-2 font-display font-extrabold">
-        <Ikon size={16} className="text-[var(--primary)]" /> {judul}
-      </span>
-      <p className="mt-1 text-sm leading-relaxed text-ink-soft">{children}</p>
-    </div>
-  );
-}
-
-function FlowBox({ judul, sub }: { judul: string; sub: string }) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-line bg-surface-2 px-2 py-3 text-center">
-      <span className="font-display text-sm font-extrabold">{judul}</span>
-      <span className="mt-0.5 text-[10px] leading-tight text-ink-soft">{sub}</span>
-    </div>
-  );
-}
-
-function FlowArrow() {
-  return <span className="flex items-center font-display font-extrabold text-ink-soft">→</span>;
-}

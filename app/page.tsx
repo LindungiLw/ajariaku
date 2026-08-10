@@ -2,7 +2,6 @@ import Link from "next/link";
 import { BookOpen, TrendingUp, GraduationCap, BrainCircuit, ShieldCheck, Guest, Gift, Chat, Users, Report, Compass } from "@/components/brand-icons";
 import { Mascot } from "@/components/mascot";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { A11yToggle } from "@/components/a11y-toggle";
 
 const TRUST = [
   { icon: ShieldCheck, label: "Progres Tersimpan", note: "Login, aman & sinkron di cloud" },
@@ -76,7 +75,6 @@ export default function LandingPage() {
           <img src="/ajariaku.png" alt="Ajari Aku" className="h-[120px] w-auto object-contain -my-[40px]" />
         </div>
         <div className="flex items-center gap-2">
-          <A11yToggle />
           <ThemeToggle />
         </div>
       </header>
@@ -85,7 +83,7 @@ export default function LandingPage() {
         {/* hero */}
         <section className="grid items-center gap-8 py-8 md:grid-cols-2 md:py-14">
           <div className="order-2 md:order-1">
-            <span className="aa-pill-primary">Matematika SD sampai SMA · Kurikulum Merdeka (Fase A sampai F)</span>
+
             <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.08] tracking-tight md:text-[2.9rem]">
               Bukan AI yang mengajarimu.{" "}
               <span className="aa-shine">Kamu yang mengajari AI-nya.</span>

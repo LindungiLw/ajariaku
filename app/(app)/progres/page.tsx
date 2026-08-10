@@ -246,7 +246,7 @@ export default function ProgresPage() {
                         <div className="aa-fill" style={{ width: `${m.paham ?? 0}%` }} />
                       </div>
                       <span className="mt-1 block text-[11px] text-ink-soft tnum">
-                        Lv {m.level} · {m.pangkat} · {m.sesi} sesi · {m.konsep} konsep
+                        {m.sesi} sesi diajarkan · {m.konsep} konsep dikuasai
                       </span>
                     </div>
                   </li>

@@ -110,7 +110,7 @@ export function Rapor({
       setData(result);
       setDemo(fell);
       setSumber(hits);
-      if (!fell && !reteach) recordRapor(result, muridId); // rapor NYATA saja (bukan luring, bukan re-teach)
+      if (!reteach) recordRapor(result, muridId); // re-teach topik tuntas → jangan gelembungkan hitung sesi/tren
     })();
     return () => {
       ok = false;
@@ -209,7 +209,7 @@ function RaporView({
           )}
           {sumber.length > 0 && !demo && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-[10px] font-bold text-ink-soft shadow-sm ring-1 ring-line">
-              <BookCheck size={12} className="text-[var(--primary)]" />
+              <BookCheck size={12} className="text-[var(--primary)]" aria-hidden="true" />
               Kurikulum Merdeka · {sumber.slice(0, 3).join(" · ")}
             </span>
           )}
@@ -217,7 +217,7 @@ function RaporView({
 
         {/* Circular Progress */}
         <div className="relative mt-2 grid h-40 w-40 place-items-center">
-          <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90 drop-shadow-md">
+          <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90 drop-shadow-md" aria-hidden="true">
             <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" className="text-[var(--primary)]/10" strokeWidth="12" />
             <circle
               cx="60"
@@ -242,7 +242,7 @@ function RaporView({
           {reteach ? (
             <>Kamu mengajari {murid} lagi, topik ini <b className="text-ink">sudah dikuasai</b> (XP tak ditambah).</>
           ) : (
-            <>Kamu berhasil membuat {murid} paham &amp; dapat <span className="inline-flex items-center gap-0.5 rounded border border-[var(--reward)]/20 bg-[var(--reward)]/10 px-1.5 py-0.5 font-bold text-[var(--reward-ink)]"><Star size={12} className="fill-[var(--reward)]" /> +{xp} XP</span></>
+            <>Kamu berhasil membuat {murid} paham &amp; dapat <span className="inline-flex items-center gap-0.5 rounded border border-[var(--reward)]/20 bg-[var(--reward)]/10 px-1.5 py-0.5 font-bold text-[var(--reward-ink)]"><Star size={12} className="fill-[var(--reward)]" aria-hidden="true" /> +{xp} XP</span></>
           )}
         </p>
       </section>
@@ -261,7 +261,14 @@ function RaporView({
                   {k.pct}%
                 </span>
               </div>
-              <div className="h-3 w-full overflow-hidden rounded-full bg-line/50">
+              <div 
+                className="h-3 w-full overflow-hidden rounded-full bg-line/50"
+                role="progressbar"
+                aria-valuenow={k.pct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Pemahaman konsep ${k.label}`}
+              >
                 <div
                   className="h-full rounded-full transition-all duration-1000 ease-out"
                   style={{
@@ -280,13 +287,13 @@ function RaporView({
       <section className="grid gap-4 sm:gap-5 md:grid-cols-2">
         <div className="rounded-3xl border border-[var(--node-good)]/20 bg-[var(--node-good)]/5 p-6 shadow-sm">
           <p className="mb-3 flex items-center gap-2 font-display text-[16px] font-black text-[var(--node-good)]">
-            <CheckCircle2 size={20} className="fill-[var(--node-good)]/20" /> Yang sudah kuat
+            <CheckCircle2 size={20} className="fill-[var(--node-good)]/20" aria-hidden="true" /> Yang sudah kuat
           </p>
           <p className="text-[14px] font-medium leading-relaxed text-ink-soft">{data.kuat}</p>
         </div>
         <div className="rounded-3xl border border-[var(--node-weak)]/20 bg-[var(--node-weak)]/5 p-6 shadow-sm">
           <p className="mb-3 flex items-center gap-2 font-display text-[16px] font-black text-[var(--node-weak)]">
-            <AlertTriangle size={20} className="fill-[var(--node-weak)]/20" /> Perlu diperkuat
+            <AlertTriangle size={20} className="fill-[var(--node-weak)]/20" aria-hidden="true" /> Perlu diperkuat
           </p>
           <p className="text-[14px] font-medium leading-relaxed text-ink-soft">{data.lemah}</p>
         </div>
@@ -295,15 +302,15 @@ function RaporView({
       {/* rekomendasi */}
       <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
         <p className="mb-3 flex items-center gap-2 font-display text-lg font-black text-ink">
-          <Lightbulb size={22} className="fill-[var(--reward)] text-[var(--reward)] drop-shadow-sm" /> Rekomendasi
+          <Lightbulb size={22} className="fill-[var(--reward)] text-[var(--reward)] drop-shadow-sm" aria-hidden="true" /> Rekomendasi
         </p>
         <p className="text-[14px] font-medium leading-relaxed text-ink-soft sm:text-[15px]">{data.rekomendasi}</p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Link href="/belajar" className="aa-btn w-full justify-center sm:w-auto sm:px-8">
-            Perkuat Materi <ArrowRight size={18} />
+            Perkuat Materi <ArrowRight size={18} aria-hidden="true" />
           </Link>
           <button onClick={onRepeat} className="aa-btn-ghost w-full justify-center sm:w-auto sm:px-6">
-            <RotateCcw size={16} /> Ajari Lagi
+            <RotateCcw size={16} aria-hidden="true" /> Ajari Lagi
           </button>
         </div>
       </section>

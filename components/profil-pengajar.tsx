@@ -165,11 +165,15 @@ function WelcomeScreen({ onSave }: { onSave: (p: Pengajar) => void }) {
           className="relative flex flex-col items-center justify-center gap-3 p-6 text-center"
           style={{ background: "linear-gradient(160deg, color-mix(in srgb, var(--primary-bright) 15%, transparent), transparent 72%)" }}
         >
-          {/* ikon web (logo), dipatok di pojok kiri-atas panel */}
-          <span className="absolute left-5 top-5 grid h-11 w-11 flex-none place-items-center overflow-hidden rounded-xl bg-white shadow-[var(--shadow-1)] ring-1 ring-line">
+          {/* ikon web (logo) + teks, dipatok di pojok kiri-atas panel */}
+          <div className="absolute left-5 top-5 flex items-center gap-2.5">
+            <span className="grid h-11 w-11 flex-none place-items-center overflow-hidden rounded-xl bg-white shadow-[var(--shadow-1)] ring-1 ring-line">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Icon Ajari Aku" width={32} height={32} className="h-8 w-8" />
+            </span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Ajari Aku" width={32} height={32} className="h-8 w-8" />
-          </span>
+            <img src="/ajariaku.png" alt="Ajari Aku" className="h-[120px] w-auto object-contain -my-[40px]" />
+          </div>
           <div className="animate-float">
             <Mascot char={mChar} mood="happy" size={64} />
           </div>

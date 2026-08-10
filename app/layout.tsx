@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Quicksand, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { A11yToggle } from "@/components/a11y-toggle";
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -71,7 +72,16 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <div className="fixed inset-x-0 bottom-24 z-[90] pointer-events-none lg:bottom-8">
+          <div className="mx-auto flex max-w-5xl px-4 md:px-6">
+            <div className="pointer-events-auto">
+              <A11yToggle />
+            </div>
+          </div>
+        </div>
+      </body>
     </html>
   );
 }

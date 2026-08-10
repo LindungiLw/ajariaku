@@ -358,15 +358,17 @@ html[data-a11y-spacing="true"] * {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-play-state: paused !important;
-    transition: none !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
 
 html[data-a11y-motion="true"] *, html[data-a11y-motion="true"] *::before, html[data-a11y-motion="true"] *::after {
-  animation-play-state: paused !important;
-  transition: none !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
 
@@ -374,4 +376,10 @@ html[data-a11y-links="true"] a {
   text-decoration: underline !important; 
   text-decoration-thickness: 2px !important; 
   text-underline-offset: 4px !important; 
+}
+
+/* Global focus-visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
