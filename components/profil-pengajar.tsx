@@ -37,6 +37,7 @@ type Ctx = {
   ready: boolean;
   hasProfil: boolean;
   save: (p: Pengajar) => void;
+  update: (p: Pengajar) => void;
 };
 
 const ProfilCtx = createContext<Ctx | null>(null);
@@ -79,17 +80,22 @@ export function ProfilProvider({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
-  function save(p: Pengajar) {
+  // Persist + perbarui state, tanpa splash sambutan (edit nama biasa / sebelum login).
+  function update(p: Pengajar) {
     savePengajar(p);
     syncMuridUtama(p.muridNama, p.muridChar); // sinkronkan murid utama ke Ruang Kelas
     setProfil(p);
     setHasProfil(true);
+  }
+
+  function save(p: Pengajar) {
+    update(p);
     setOnboarding(false);
     setJustWelcomed(true); // selesai onboarding (pertama kali masuk) → sambut
   }
 
   return (
-    <ProfilCtx.Provider value={{ profil, ready, hasProfil, save }}>
+    <ProfilCtx.Provider value={{ profil, ready, hasProfil, save, update }}>
       {children}
       {onboarding && !infoRoute && <WelcomeScreen onSave={save} />}
       {justWelcomed && hasProfil && (

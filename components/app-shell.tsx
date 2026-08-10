@@ -8,6 +8,7 @@ import { Star, Flame } from "@/components/brand-icons";
 import { IconBeranda, IconBelajar, IconAjari, IconKelas, IconProgres } from "@/components/nav-icons";
 import { useProfil } from "@/components/profil-pengajar";
 import { useAuth } from "@/components/auth";
+import { useLoginSheet } from "@/components/login-sheet";
 import { sapaan, DEFAULT_MURID_CHAR } from "@/lib/profile";
 import { loadProgress, levelInfo, streakDays } from "@/lib/progress";
 import { onCelebrate } from "@/lib/celebrate";
@@ -126,9 +127,9 @@ const GUEST_DISMISS_KEY = "ajari-aku:guest-banner-dismissed";
 // progres baru berarti (>= 1 level XP) dengan ajakan positif, tak nge-nag, tapi mengingatkan saat ada
 // yang layak diselamatkan. Hilang total begitu login.
 function GuestBanner() {
-  const { user, ready, enabled, signInGoogle } = useAuth();
+  const { user, ready, enabled } = useAuth();
+  const { promptLogin } = useLoginSheet();
   const path = usePathname();
-  const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
   const [resurface, setResurface] = useState(false);
 
@@ -154,15 +155,6 @@ function GuestBanner() {
 
   if (!show) return null;
 
-  async function login() {
-    setBusy(true);
-    try {
-      await signInGoogle();
-    } catch {
-      /* dibatalkan / ditangani di tempat lain */
-    }
-    setBusy(false);
-  }
   function tutup() {
     try {
       window.localStorage.setItem(GUEST_DISMISS_KEY, String(loadProgress().xp));
@@ -184,11 +176,10 @@ function GuestBanner() {
           )}
         </span>
         <button
-          onClick={login}
-          disabled={busy}
-          className="flex-none rounded-full bg-gradient-to-r from-[var(--cta-1)] to-[var(--cta-2)] px-3 py-1 text-[12px] font-bold text-white transition disabled:opacity-60"
+          onClick={promptLogin}
+          className="flex-none rounded-full bg-gradient-to-r from-[var(--cta-1)] to-[var(--cta-2)] px-3 py-1 text-[12px] font-bold text-white transition"
         >
-          {busy ? "…" : "Login untuk simpan"}
+          Login untuk simpan
         </button>
         <button
           onClick={tutup}

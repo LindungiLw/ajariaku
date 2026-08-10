@@ -82,11 +82,11 @@ Fitur pendukung: **PWA installable** (bisa "Add to Home Screen"), toggle tema ce
 
 ## Cuplikan Layar
 
-> Letakkan gambar/GIF demo di folder `docs/screenshots/` lalu tautkan di sini sebelum submit.
+Cara terbaik menilai Ajari Aku adalah mencobanya langsung sebagai tamu (tanpa login):
 
-| Beranda                          | Ajari (mengajar Pio)           | Peta Petualangan                 |
-| -------------------------------- | ------------------------------ | -------------------------------- |
-| _`docs/screenshots/beranda.png`_ | _`docs/screenshots/ajari.png`_ | _`docs/screenshots/belajar.png`_ |
+**[▶ Buka demo langsung](https://ajariaku.vercel.app/)**
+
+Alur inti yang bisa dicoba: pilih topik di **Belajar**, baca **Materi**, kerjakan **Kuis**, lalu **Ajari** murid AI Pio, dan tutup dengan **Rapor Sesi** lalu **Naik Level**. Tangkapan layar tiap halaman juga tersedia di lampiran proposal.
 
 ## Arsitektur & Cara Kerja
 
@@ -167,11 +167,57 @@ Dirancang dengan prinsip **minim data** dan selaras **UU PDP No. 27/2022**:
 - **Cloud sync opsional.** Firebase Auth (Google) + Firestore hanya aktif bila variabel `NEXT_PUBLIC_FIREBASE_*` diisi; jika tidak, aplikasi berjalan penuh dalam mode tamu dan tombol Google disembunyikan.
 - **Minimisasi PII.** Saat sinkron, hanya **progres belajar** yang ditulis ke Firestore — **bukan** email/nama/foto.
 - **Keamanan basis data = aturan, bukan kerahasiaan kunci.** Kunci `NEXT_PUBLIC_FIREBASE_*` memang publik _by design_ (identifier proyek, bukan rahasia); pengamanannya ada di **Firestore rules**: tiap pengguna hanya bisa membaca/menulis dokumennya sendiri, selebihnya _default deny_.
-- **Kunci Gemini hanya di server.** `GEMINI_API_KEY` (opsional `GEMINI_API_KEY_2`…`_5`, atau `GEMINI_API_KEYS` dipisah koma, untuk **rotasi kuota**) dibaca di route server `/api/ajari` dan **tidak pernah** masuk ke bundle browser (tanpa prefix `NEXT_PUBLIC`).
+- **Kunci Gemini hanya di server.** `GEMINI_API_KEY` (opsional `GEMINI_API_KEY_2`…`_10`, atau `GEMINI_API_KEYS` dipisah koma, untuk **rotasi kuota**) dibaca di route server `/api/ajari` dan **tidak pernah** masuk ke bundle browser (tanpa prefix `NEXT_PUBLIC`).
 - **Pengerasan endpoint AI.** Rate-limit per-IP, pengecekan origin, batas panjang input & jumlah giliran, serta timeout — untuk mencegah penyalahgunaan dan membatasi biaya token.
 - **Hak hapus data.** Pengguna dapat _reset progres_ atau _hapus semua data_ (termasuk salinan cloud bila login) langsung dari halaman Profil.
 
 > **Catatan jujur:** Firebase **App Check belum dipasang** di kode saat ini — pengamanan endpoint Firebase bertumpu pada Firestore rules. App Check dapat ditambahkan sebagai pengerasan lanjutan.
+
+## Menjalankan Secara Lokal
+
+Prasyarat: **Node.js 20+**.
+
+```bash
+# 1. Klon repositori
+git clone https://github.com/LindungiLw/ajariaku.git
+cd ajari-aku
+
+# 2. Pasang dependensi
+npm install
+
+# 3. Siapkan variabel lingkungan (lihat bagian berikutnya)
+cp .env.example .env.local
+# lalu isi .env.local dengan kunci milikmu (boleh dikosongkan untuk mode tamu)
+
+# 4. Jalankan mode pengembangan
+npm run dev
+```
+
+Buka `http://localhost:3000`. Tanpa mengisi `.env.local` sekalipun, aplikasi tetap berjalan penuh dalam **mode tamu + murid AI lokal** (tanpa Gemini/Firebase).
+
+## Variabel Lingkungan
+
+Semua variabel bersifat **opsional**: tanpa satu pun, aplikasi berjalan penuh dalam mode tamu dengan murid AI lokal. Salin `.env.example` menjadi `.env.local`, lalu isi sesuai kebutuhan.
+
+| Variabel                    | Untuk      | Fungsi                                                                             |
+| --------------------------- | ---------- | --------------------------------------------------------------------------------- |
+| `GEMINI_API_KEY`            | Murid AI   | Kunci Google Gemini utama (dibaca di server).                                     |
+| `GEMINI_API_KEY_2` … `_10`  | Murid AI   | Kunci cadangan untuk rotasi kuota (satu habis, lompat ke berikutnya).             |
+| `GEMINI_API_KEYS`           | Murid AI   | Alternatif: banyak kunci dalam satu baris, dipisah koma.                          |
+| `GEMINI_MODEL`              | Murid AI   | Rantai model, mis. `gemini-flash-latest,gemini-2.0-flash`.                        |
+| `NEXT_PUBLIC_FIREBASE_*`    | Cloud sync | Konfigurasi Firebase (6 nilai). Publik by design, diamankan lewat Firestore rules. |
+
+> Kunci `GEMINI_*` **hanya dibaca di server** (`/api/ajari`) dan tak pernah masuk ke bundle browser (tanpa prefix `NEXT_PUBLIC`).
+
+## Deploy
+
+Di-deploy ke **Vercel**:
+
+1. Import repositori ini (Add New → Project). Next.js terdeteksi otomatis.
+2. **Settings → Environment Variables**: isi variabel dari bagian di atas (minimal `GEMINI_API_KEY` untuk AI; `NEXT_PUBLIC_FIREBASE_*` bila ingin cloud sync).
+3. **Deploy**. Setiap push ke `main` otomatis ter-deploy ulang.
+
+Aturan `firestore.rules` perlu di-deploy terpisah lewat Firebase Console atau CLI agar sinkronisasi & papan peringkat berfungsi.
 
 ## Struktur Proyek
 

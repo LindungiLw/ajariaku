@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copy, Check, Lock, RotateCcw, CalendarDays } from "lucide-react";
+import { Copy, Check, Lock, RotateCcw, CalendarDays, Users } from "lucide-react";
 import { Star, Flame, Trophy, Award, BookOpen, Target, BrainCircuit, TrendingUp, Search } from "@/components/brand-icons";
 import { Mascot } from "@/components/mascot";
 import { useProfil } from "@/components/profil-pengajar";
 import { sapaan, namaMurid } from "@/lib/profile";
-import { loadMurid } from "@/lib/murid";
+import { loadMurid, pangkatMurid } from "@/lib/murid";
+import { KATEGORI } from "@/lib/avatar";
 import { loadProgress, levelInfo, activityByDay, streakDays, type Progress } from "@/lib/progress";
 import { tierOf } from "@/lib/liga";
 import { evalAchievements, ACH_ICON } from "@/lib/achievements";
@@ -22,17 +23,12 @@ const LEVEL_LABEL: Record<MasteryLevel, string> = {
   good: "Kuat", mid: "Sedang", weak: "Perlu latihan",
 };
 
-const HEAT = [
-  "var(--surface-3)",
-  "color-mix(in srgb, var(--primary) 28%, var(--surface-3))",
-  "color-mix(in srgb, var(--primary) 55%, transparent)",
-  "color-mix(in srgb, var(--primary) 78%, transparent)",
-  "var(--primary)",
-];
 const DAY = 86400000;
 const HEAT_DAYS = 14; // 2 minggu terakhir, satu baris, bersih
 
 type TabId = "ringkasan" | "peringkat" | "medali";
+
+const catShort = (id: string) => KATEGORI.find((k) => k.id === id)?.short ?? id;
 
 export default function ProgresPage() {
   const { profil: pengajar } = useProfil();
@@ -54,6 +50,27 @@ export default function ProgresPage() {
   const muridCount = prog ? loadMurid().length : 0;
   // Murid Ruang Kelas yang sudah naik level (≥ Lv 2) → syarat lencana "Wali Kelas".
   const muridNaik = prog ? loadMurid().filter((m) => levelInfo(m.xp ?? 0).level >= 2).length : 0;
+  // Analitik per murid: pemahaman rata-rata + statistik ringkas, dari data tiap murid.
+  const muridStats = prog
+    ? loadMurid()
+        .map((m) => {
+          const mm = loadMem(m.id);
+          const pcts = mm ? Object.values(mm.mastery).map((v) => v.pct) : [];
+          const paham = pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null;
+          return {
+            id: m.id,
+            nama: m.nama,
+            avatar: m.avatar,
+            bidang: catShort(m.kategori),
+            level: levelInfo(m.xp ?? 0).level,
+            pangkat: pangkatMurid(m.xp ?? 0).nama,
+            sesi: mm?.sesi ?? 0,
+            konsep: m.selesai?.length ?? 0,
+            paham,
+          };
+        })
+        .sort((a, b) => (b.paham ?? -1) - (a.paham ?? -1))
+    : [];
   const ach = evalAchievements(p, { muridNaikLevel: muridNaik });
   const unlocked = ach.filter((a) => a.unlocked).length;
 
@@ -70,6 +87,9 @@ export default function ProgresPage() {
         .map(([konsep, v]) => ({ konsep, level: v.level, pct: v.pct }))
         .sort((a, b) => a.pct - b.pct)
     : [];
+  const kuat = mastery.filter((m) => m.level === "good").length;
+  const sedang = mastery.filter((m) => m.level === "mid").length;
+  const perluLatih = mastery.filter((m) => m.level === "weak").length;
 
   // peta aktivitas NYATA: jumlah sesi per hari, 14 hari terakhir
   const act = activityByDay(p.riwayat);
@@ -82,6 +102,7 @@ export default function ProgresPage() {
     return { day, cnt, lvl: cnt === 0 ? 0 : Math.min(4, cnt) };
   });
   const hariAktif = heatCells.filter((c) => c.cnt > 0).length;
+  const totalSesi = heatCells.reduce((s, c) => s + c.cnt, 0);
 
   const ringkasanText =
     `Ringkasan Belajar, Ajari Aku\n` +
@@ -197,12 +218,54 @@ export default function ProgresPage() {
             )}
           </section>
 
+          {/* Analitik per murid */}
+          {muridStats.length > 0 && (
+            <section className="aa-card p-4 md:p-5">
+              <h2 className="flex items-center gap-2 font-display text-lg font-extrabold">
+                <Users size={18} className="text-[var(--primary)]" /> Analitik per Murid
+              </h2>
+              <p className="mb-3.5 mt-0.5 text-sm text-ink-soft">
+                Pemahaman rata-rata di bidang tiap murid AI, terbaca dari cara kamu menjelaskan.
+              </p>
+              <ul className="flex flex-col gap-3.5">
+                {muridStats.map((m) => (
+                  <li key={m.id} className="flex items-center gap-3">
+                    <Mascot avatar={m.avatar} size={34} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 truncate text-sm font-bold">
+                          {m.nama} <span className="font-normal text-ink-soft">· {m.bidang}</span>
+                        </span>
+                        {m.paham != null ? (
+                          <span className="flex-none text-sm font-extrabold tnum text-[var(--primary)]">{m.paham}%</span>
+                        ) : (
+                          <span className="flex-none text-[11px] font-bold text-ink-soft">belum diajari</span>
+                        )}
+                      </div>
+                      <div className="mt-1.5 aa-track">
+                        <div className="aa-fill" style={{ width: `${m.paham ?? 0}%` }} />
+                      </div>
+                      <span className="mt-1 block text-[11px] text-ink-soft tnum">
+                        Lv {m.level} · {m.pangkat} · {m.sesi} sesi · {m.konsep} konsep
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {/* Peta pemahaman (USP) */}
           <section className="aa-card p-4 md:p-5">
             <h2 className="flex items-center gap-2 font-display text-lg font-extrabold">
               <BrainCircuit size={18} className="text-[var(--primary)]" /> Peta Pemahaman
             </h2>
             <p className="mb-3 mt-0.5 text-sm text-ink-soft">Terbaca otomatis dari cara kamu menjelaskan ke murid AI.</p>
+            {mastery.length > 0 && (
+              <div className="mb-4">
+                <DistribusiBar kuat={kuat} sedang={sedang} perlu={perluLatih} />
+              </div>
+            )}
             {mastery.length > 0 ? (
               <ul className="flex flex-col gap-3.5">
                 {mastery.map((m) => (
@@ -235,32 +298,28 @@ export default function ProgresPage() {
             )}
           </section>
 
-          {/* Aktivitas mengajar (heatmap) */}
+          {/* Aktivitas mengajar (grafik area tren, 14 hari) */}
           <section className="aa-card p-4 md:p-5">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="flex items-center gap-2 font-display text-lg font-extrabold">
                 <CalendarDays size={18} className="text-[var(--primary)]" /> Aktivitas Mengajar
               </h2>
-              <span className="flex items-center gap-1 text-[10px] font-bold text-ink-soft">
-                Sedikit
-                {HEAT.map((c, i) => <span key={i} className="h-2.5 w-2.5 rounded-[3px]" style={{ background: c }} />)}
-                Banyak
-              </span>
+              <span className="flex-none text-[11px] font-bold text-ink-soft">14 hari terakhir</span>
             </div>
-            <div className="flex gap-1.5">
-              {heatCells.map((c) => (
-                <span
-                  key={c.day}
-                  className="h-6 flex-1 rounded-[5px]"
-                  style={{ background: HEAT[c.lvl] }}
-                  title={prog ? `${new Date(c.day).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}${c.cnt ? ` · ${c.cnt} sesi` : " · belum ada"}` : undefined}
-                />
-              ))}
-            </div>
+            {hariAktif > 0 ? (
+              <TrenArea cells={heatCells} />
+            ) : (
+              <div className="rounded-2xl border border-dashed border-line bg-surface-2 px-4 py-6 text-center">
+                <CalendarDays size={24} className="mx-auto text-[var(--primary)]/50" />
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  Belum ada aktivitas. Ajari 1 konsep untuk mulai mengisi tren mengajarmu.
+                </p>
+              </div>
+            )}
             <p className="mt-2.5 text-[11px] text-ink-soft">
               {hariAktif > 0
-                ? `${hariAktif} hari aktif dalam 2 minggu terakhir.`
-                : "Belum ada aktivitas, mulai mengajar untuk mengisi petamu."}
+                ? `${hariAktif} hari aktif · ${totalSesi} sesi dalam 2 minggu terakhir.`
+                : "Grafik tren muncul begitu kamu mulai mengajar."}
             </p>
           </section>
         </div>
@@ -340,6 +399,83 @@ function MetricCard({ icon: Icon, color, value, label, sub }: { icon: typeof Tro
       <p className="mt-2.5 font-display text-2xl font-extrabold tnum">{value}</p>
       <p className="text-sm font-bold leading-tight">{label}</p>
       <p className="mt-0.5 text-[11px] leading-snug text-ink-soft">{sub}</p>
+    </div>
+  );
+}
+
+// Distribusi pemahaman: batang bertumpuk Kuat/Sedang/Perlu latihan (warna status), ringkas.
+function DistribusiBar({ kuat, sedang, perlu }: { kuat: number; sedang: number; perlu: number }) {
+  const total = kuat + sedang + perlu;
+  if (total === 0) return null;
+  const segs = [
+    { n: kuat, label: "Kuat", color: "var(--node-good)" },
+    { n: sedang, label: "Sedang", color: "var(--node-mid)" },
+    { n: perlu, label: "Perlu latihan", color: "var(--node-weak)" },
+  ];
+  return (
+    <div>
+      <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full">
+        {segs.filter((s) => s.n > 0).map((s) => (
+          <div key={s.label} title={`${s.label}: ${s.n} konsep`} style={{ flex: s.n, background: s.color }} />
+        ))}
+      </div>
+      <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1">
+        {segs.map((s) => (
+          <span key={s.label} className="inline-flex items-center gap-1.5 text-xs">
+            <span className="h-2.5 w-2.5 flex-none rounded-[3px]" style={{ background: s.color }} />
+            <b className="tnum">{s.n}</b>
+            <span className="text-ink-soft">{s.label}</span>
+          </span>
+        ))}
+      </div>
+      <p className="mt-2 text-[12px] text-ink-soft">
+        Dari <b className="text-ink tnum">{total}</b> konsep yang kamu ajarkan, <b className="text-ink tnum">{kuat}</b> sudah kuat.
+      </p>
+    </div>
+  );
+}
+
+// Tren aktivitas mengajar: grafik area sesi per hari (14 hari), gaya analitik bersih.
+function TrenArea({ cells }: { cells: { day: number; cnt: number }[] }) {
+  const n = cells.length;
+  const max = Math.max(...cells.map((c) => c.cnt), 1);
+  const xp = (i: number) => (n <= 1 ? 50 : 4 + (i / (n - 1)) * 92);
+  const yp = (v: number) => (1 - v / max) * 82 + 9; // 9% pad atas, 91% di garis nol
+  const linePts = cells.map((c, i) => `${xp(i)},${yp(c.cnt)}`).join(" ");
+  const areaPts = `${xp(0)},100 ${linePts} ${xp(n - 1)},100`;
+  const last = cells[n - 1];
+  const fmt = (day: number) => new Date(day).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  return (
+    <div className="relative w-full">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="block h-16 w-full" aria-hidden="true">
+        <defs>
+          <linearGradient id="tren-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.24" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <line x1="0" y1="91" x2="100" y2="91" stroke="var(--line)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+        <polygon points={areaPts} fill="url(#tren-fill)" />
+        <polyline points={linePts} fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      </svg>
+      {cells.map((c, i) =>
+        c.cnt > 0 ? (
+          <span
+            key={c.day}
+            className="pointer-events-none absolute h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--primary)]"
+            style={{ left: `${xp(i)}%`, top: `${yp(c.cnt)}%` }}
+          />
+        ) : null,
+      )}
+      <span
+        className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--primary)] ring-2 ring-[var(--surface)]"
+        style={{ left: `${xp(n - 1)}%`, top: `${yp(last.cnt)}%` }}
+      />
+      <div className="absolute inset-0 flex">
+        {cells.map((c) => (
+          <div key={c.day} className="flex-1" title={`${fmt(c.day)} · ${c.cnt ? `${c.cnt} sesi` : "belum ada"}`} />
+        ))}
+      </div>
     </div>
   );
 }
