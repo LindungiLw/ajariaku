@@ -8,24 +8,31 @@ import { prettyMath } from "@/lib/pretty-math";
 export function KeliruCard({ text }: { text: string }) {
   const { salah, koreksi, contoh } = pisahKeliru(text);
   return (
-    <div
-      className="flex gap-2.5 rounded-xl border p-3"
-      style={{ borderColor: "color-mix(in srgb, var(--node-weak) 28%, transparent)", background: "color-mix(in srgb, var(--node-weak) 6%, transparent)" }}
-    >
-      <span className="mt-0.5 grid h-6 w-6 flex-none place-items-center rounded-full bg-[var(--node-weak)] text-white">
-        <X size={13} />
+    <div className="group relative flex overflow-hidden gap-3 rounded-2xl border border-line bg-surface p-4 sm:p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--node-weak)]/40 hover:shadow-md">
+      <div className="absolute bottom-0 left-0 top-0 w-1 bg-[var(--node-weak)]/60" />
+      
+      <span className="mt-0.5 grid h-7 w-7 flex-none place-items-center rounded-full bg-[var(--node-weak)]/10 text-[14px] font-bold text-[var(--node-weak)] ring-1 ring-[var(--node-weak)]/20 transition-colors group-hover:bg-[var(--node-weak)] group-hover:text-white group-hover:ring-[var(--node-weak)]/30">
+        <X size={15} />
       </span>
-      <div className="flex min-w-0 flex-col gap-2">
-        <p className="text-[13.5px] font-semibold leading-snug text-ink">{prettyMath(salah)}</p>
+      
+      <div className="flex min-w-0 flex-1 flex-col gap-3.5">
+        <p className="text-[13px] md:text-[14px] xl:text-[15px] font-bold leading-relaxed text-ink">
+          {prettyMath(salah)}
+        </p>
+        
         {koreksi && (
-          <p className="flex gap-1.5 text-[13px] leading-snug text-ink-soft">
-            <Check size={15} className="mt-[1px] flex-none text-[var(--node-good)]" />
-            <span>{prettyMath(koreksi)}</span>
-          </p>
+          <div className="flex items-start gap-2.5 rounded-xl border border-[var(--node-good)]/20 bg-[color-mix(in_srgb,var(--node-good)_8%,var(--surface))] p-3 shadow-sm">
+            <Check size={16} className="mt-0.5 flex-none text-[var(--node-good)]" />
+            <p className="text-[13px] md:text-[14px] xl:text-[15px] font-medium leading-relaxed text-ink/90">
+              {prettyMath(koreksi)}
+            </p>
+          </div>
         )}
+        
         {contoh && (
-          <div className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[12.5px] leading-snug text-ink-soft">
-            <span className="font-bold text-ink">Contoh: </span>{prettyMath(contoh)}
+          <div className="rounded-xl border border-line/60 bg-surface-2/50 px-3.5 py-2.5 text-[13px] md:text-[14px] leading-relaxed text-ink-soft">
+            <span className="font-bold text-ink">Contoh: </span>
+            {prettyMath(contoh)}
           </div>
         )}
       </div>

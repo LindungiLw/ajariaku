@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Pi, RotateCcw, ArrowRight, Flag, BookCheck, KeyRound, X, AlertTriangle, Users, ChevronDown } from "lucide-react";
+import { Send, Pi, RotateCcw, ArrowRight, Flag, BookCheck, Lightbulb, X, AlertTriangle, Users, ChevronDown, Key } from "lucide-react";
 import { Star, CheckCircle2, BrainCircuit } from "@/components/brand-icons";
 import { Mascot } from "@/components/mascot";
 import { Konfeti } from "@/components/confetti";
@@ -25,7 +25,7 @@ import { KeliruCard } from "@/components/keliru-card";
 import { creditMurid, creditMuridXp, loadMurid, karakterForMurid, pangkatMurid, UTAMA_ID, type MuridKustom } from "@/lib/murid";
 import { celebrate, celebrateDelta, celebrateBadges } from "@/lib/celebrate";
 import { materiById, type MateriRingkas } from "@/lib/materi";
-import { parseContoh, parseMiskonsepsi } from "@/lib/materi-parse";
+import { parseContoh, parseMiskonsepsi, type ContohSeg } from "@/lib/materi-parse";
 import { resolveTopik } from "@/lib/topik";
 import { responLokal, newMuridState, type MuridState } from "@/lib/murid-lokal";
 import { prettyMath } from "@/lib/pretty-math";
@@ -92,7 +92,6 @@ export default function AjariPage() {
   const bantuan = sesi ? materiById(sesi.id) : undefined;
   // Memori murid sesi ini. Dideklarasikan sebelum greeting yang memakainya (hindari TDZ).
   const [profil, setProfil] = useState<Profil | null>(null);
-  // Sapaan sadar-memori bila murid ini pernah diajar; else default.
   const greeting = sapaanMemori(profil, sap, soalAktif) ?? greetDefault(murid, sap, soalAktif);
 
   const [messages, setMessages] = useState<Msg[]>([
@@ -102,23 +101,19 @@ export default function AjariPage() {
   const [typing, setTyping] = useState(false);
   const [xp, setXp] = useState(0);
   const [xpKey, setXpKey] = useState(0);
-  const sessionXpRef = useRef(0); // total XP diperoleh sesi ini
-  const creditedRef = useRef(0); // XP yang SUDAH masuk ke store (global + murid) → cegah dobel
-  // Tambah XP sesi (tampilan). Disimpan ke store saat flushXp() di batas tahapan / sesi selesai.
+  const sessionXpRef = useRef(0);
+  const creditedRef = useRef(0);
   function addSessionXp(n: number) {
     sessionXpRef.current += n;
     setXp(sessionXpRef.current);
   }
-  // Simpan XP tahapan yang belum tercatat. Gerbang DIPISAH: XP GLOBAL guru di-gate penguasaan global
-  // (cegah farming re-teach guru), sedangkan XP MURID Ruang Kelas di-gate penguasaan MURID SENDIRI,
-  // jadi topik yang sudah dikuasai guru TETAP mengkreditkan murid lain (tiap murid tumbuh sendiri).
   function flushXp() {
     if (!sesi) return;
     const delta = sessionXpRef.current - creditedRef.current;
     if (delta <= 0) return;
-    const doGlobal = !isDone(sesi.id) && isLatihanDone(sesi.id); // XP GLOBAL hanya bila Quiz topik ini lulus
+    const doGlobal = !isDone(sesi.id) && isLatihanDone(sesi.id);
     const doMurid = !!sesi.muridId && !muridSudah(sesi.muridId, sesi.id);
-    if (!doGlobal && !doMurid) return; // guru & murid sama-sama sudah kuasai → tak ada yang dikreditkan
+    if (!doGlobal && !doMurid) return;
     const before = loadProgress();
     const muridBefore = loadMurid();
     creditedRef.current = sessionXpRef.current;
@@ -129,46 +124,39 @@ export default function AjariPage() {
   const [muridMood, setMuridMood] = useState<Mood>("curious");
   const [used, setUsed] = useState<string[]>([]);
   const [done, setDone] = useState(false);
-  const [reteach, setReteach] = useState(false); // sesi ULANG atas topik yang sudah dikuasai → tak ada XP baru
+  const [reteach, setReteach] = useState(false);
   const [showRapor, setShowRapor] = useState(false);
-  const [demo, setDemo] = useState(false); // true = murid AI pakai skrip cadangan (offline/kuota)
-  const [sumber, setSumber] = useState<string[]>([]); // konsep RAG acuan → grounding terlihat
-  const [showKunci, setShowKunci] = useState(false); // buka pembahasan/kunci saat mentok (default tertutup)
-  const [showSymbols, setShowSymbols] = useState(false); // papan simbol matematika (disembunyikan default biar ringkas)
-  const [atBottom, setAtBottom] = useState(true); // apakah scroll chat di dasar (untuk auto-scroll cerdas)
-  const [muridList, setMuridList] = useState<MuridKustom[]>([]); // daftar murid AI (panel kiri desktop)
-  const [pickFor, setPickFor] = useState<MuridKustom | null>(null); // murid yang sedang dipilih materinya
+  const [demo, setDemo] = useState(false);
+  const [sumber, setSumber] = useState<string[]>([]);
+  const [showKunci, setShowKunci] = useState(false);
+  const [showSymbols, setShowSymbols] = useState(false);
+  const [atBottom, setAtBottom] = useState(true);
+  const [muridList, setMuridList] = useState<MuridKustom[]>([]);
+  const [pickFor, setPickFor] = useState<MuridKustom | null>(null);
 
-  const endRef = useRef<HTMLDivElement>(null); // sentinel dasar daftar pesan (untuk scrollIntoView)
+  const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null); // kontainer pesan, satu-satunya yang scroll
+  const scrollRef = useRef<HTMLDivElement>(null);
   const alive = useRef(true);
-  const muridSt = useRef<MuridState>(newMuridState()); // fase murid lokal (keliru → dikoreksi → paham)
+  const muridSt = useRef<MuridState>(newMuridState());
 
   useEffect(() => {
     alive.current = true;
-    setMuridList(loadMurid()); // daftar murid AI untuk panel kiri (desktop)
-    const s = getSesi(); // topik yang dipilih dari menu Belajar/Kelas/Beranda (bisa bawa muridId)
-    // KUNCI SUNGGUHAN: Ajari hanya boleh dibuka bila Quiz topik ini sudah LULUS (isLatihanDone),
-    // menutup celah bypass lewat Beranda "Ajari Sekarang", tab nav Ajari, & tombol Ajari di Materi,
-    // konsisten dengan gerbang Quiz di /kursus. Topik yang sudah lulus tetap boleh di-re-teach.
-    // Gerbang sesi SOLO: Ajari hanya boleh bila Quiz topik ini LULUS. Bila belum, JANGAN lempar diam-diam
-    // ke Materi, tampilkan PANDUAN di halaman ini (setNeedStage) supaya user paham & memilih sendiri.
+    setMuridList(loadMurid());
+    const s = getSesi();
     const gateSolo = (id: string, judul: string) => {
-      if (isLatihanDone(id)) return false; // Quiz sudah lulus → boleh mengajar
+      if (isLatihanDone(id)) return false;
       setNeedStage({ id, judul, mDone: isMateriDone(id) });
       return true;
     };
     if (s) {
-      // Belajar dulu baru mengajar: SEMUA sesi (solo & Kelas) wajib Quiz lulus (isLatihanDone).
       if (gateSolo(s.id, s.judul)) return;
       setSesiState(s);
     } else {
-      // Tanpa sesi (mis. klik tab "Ajari") → topik aktif; bila Quiz-nya belum lulus, tampilkan panduan.
       const jenjang = loadPengajar()?.jenjang;
       const active = activeTopikFor(jenjang, loadProgress().selesai);
       if (gateSolo(active.id, active.judul)) return;
-      const s2 = buildSesi(active.id, null); // sesi solo (tanpa murid)
+      const s2 = buildSesi(active.id, null);
       setSesi(s2);
       setSesiState(s2);
     }
@@ -177,23 +165,13 @@ export default function AjariPage() {
     };
   }, []);
 
-  // Muat memori murid sesi ini (memId: solo -> store Pio).
   useEffect(() => {
     setProfil(loadProfil(memId));
   }, [memId]);
 
-  // Tandai topik tuntas & simpan XP saat sesi selesai (persisten, tanpa wajib login).
-  // Kreditkan XP yang BENAR-BENAR ditampilkan (akumulasi sesi), bukan angka tetap,
-  // biar "+{xp} XP" di kartu selesai = kenaikan yang muncul di Progres. Idempoten via id.
-  // XP diberikan: MINIMAL sebesar hadiah topik (yang tertera di peta), lebih bila usaha banyak.
-  // Bikin label "+X XP" jadi jaminan minimum, bukan janji yang meleset.
   const earnedXp = Math.max(xp, sesi?.xp ?? 0);
-  // Yang DITAMPILKAN sebagai "didapat": 0 bila re-teach topik tuntas (XP memang tak dikreditkan),
-  // jangan mengklaim "+X XP" palsu yang tak muncul di Progres.
   const shownXp = reteach ? 0 : earnedXp;
 
-  // reteach = TIDAK ada kredit baru (global & murid sama-sama tak berhak / sudah kuasai) → kartu
-  // selesai menampilkan "sudah dikuasai, XP tak ditambah". Dipakai di done-effect & handler Akhiri.
   function hitungReteach(s: Sesi | null): boolean {
     if (!s) return false;
     const gDone = isDone(s.id);
@@ -206,28 +184,20 @@ export default function AjariPage() {
     if (done && sesi) {
       const globalDone = isDone(sesi.id);
       const muridDone = sesi.muridId ? muridSudah(sesi.muridId, sesi.id) : globalDone;
-      // Mastery/XP GLOBAL hanya sah bila Quiz topik ini lulus. Sesi Kelas atas topik yang Quiz-nya
-      // belum lulus tetap berjalan, tapi hanya menambah progres per-murid, bukan penguasaan global.
       const bolehGlobal = !globalDone && isLatihanDone(sesi.id);
-      // "re-teach" (tak ada XP baru) = pihak yang RELEVAN sudah menguasai: sesi Kelas → murid ini,
-      // sesi solo → penguasaan global guru.
       setReteach(hitungReteach(sesi));
-      flushXp(); // simpan + rayakan XP tahapan terakhir (gerbang global/murid dipisah di dalam)
+      flushXp();
       const floorTopUp = Math.max(0, sesi.xp - creditedRef.current);
       const before = loadProgress();
       const muridBefore = loadMurid();
-      // Tandai DIKUASAI global (buka node berikut + riwayat/streak) bila Quiz lulus & guru belum kuasai.
       if (bolehGlobal) completeTopic(sesi.id, floorTopUp, sesi.judul);
-      // Tandai topik "diajari" untuk MURID ini + top-up lantai (idempoten per murid) bila MURID belum kuasai.
       if (sesi.muridId && !muridDone) creditMurid(sesi.muridId, sesi.id, floorTopUp);
       if (bolehGlobal || (sesi.muridId && !muridDone))
         celebrateDelta(before, loadProgress(), { muridBefore, muridAfter: loadMurid() });
-      clearSesi(); // sesi sudah tuntas → jangan di-resume saat buka /ajari lagi
+      clearSesi();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done, sesi]);
 
-  // Perbarui sapaan pembuka begitu profil termuat, selama sesi belum dimulai.
   useEffect(() => {
     setMessages((m) =>
       m.length === 1 && m[0].from === "murid" && xp === 0 && !done
@@ -236,15 +206,12 @@ export default function AjariPage() {
     );
   }, [greeting, xp, done]);
 
-  // Segarkan daftar murid saat sesi selesai (level/materi murid ikut ter-update).
   useEffect(() => setMuridList(loadMurid()), [done]);
 
-  // Auto-scroll CERDAS: hanya ikut ke bawah kalau guru memang di dasar (tak menyentak saat baca riwayat).
   useEffect(() => {
     if (atBottom) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, typing, atBottom]);
 
-  // Chat kini scroll INTERNAL (kontainer pesan), bukan window → deteksi "sudah di dasar?" dari kontainer.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -278,19 +245,18 @@ export default function AjariPage() {
     let usedFallback = false;
 
     if (!PAKAI_GEMINI) {
-      // Murid AI lokal (tanpa Gemini): keliru → dikoreksi → paham
       const hasil = responLokal(sesi?.id ?? "", clean, muridSt.current, sesi?.muridId);
       reply = hasil.reply;
       understood = hasil.understood;
       mood = hasil.mood;
       dikoreksi = hasil.dikoreksi;
-      if (!sumber.length) setSumber([topikAktif]); // chip "Sumber: Kurikulum Merdeka" tetap tampil
-      await new Promise((r) => setTimeout(r, TYPING_MS)); // jeda "mengetik" biar terasa hidup
+      if (!sumber.length) setSumber([topikAktif]);
+      await new Promise((r) => setTimeout(r, TYPING_MS));
     } else {
       const boleh = geminiAllowed();
-      if (boleh) noteGeminiCall(); // hitung panggilan ini terhadap batas harian per-perangkat
+      if (boleh) noteGeminiCall();
       try {
-        if (!boleh) throw new Error("cap-harian"); // batas harian Gemini tercapai → pakai mode lokal
+        if (!boleh) throw new Error("cap-harian");
         const res = await fetch("/api/ajari", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -312,14 +278,10 @@ export default function AjariPage() {
         reply = String(data.reply);
         understood = !!data.understood;
         mood = (["happy", "curious", "oops"].includes(data.mood) ? data.mood : "curious") as Mood;
-        dikoreksi = !!data.dikoreksi; // sinyal eksplisit murid AI: guru baru saja mengoreksinya
-        if (Array.isArray(data.sumber)) setSumber(data.sumber as string[]); // konsep RAG acuan
+        dikoreksi = !!data.dikoreksi;
+        if (Array.isArray(data.sumber)) setSumber(data.sumber as string[]);
       } catch {
         usedFallback = true;
-        // Jaring pengaman OFFLINE (Gemini gagal / kuota habis): pakai mesin murid LOKAL yang tetap
-        // memodelkan siklus keliru→dikoreksi→paham + sinyal `dikoreksi`, supaya USP (koreksi
-        // miskonsepsi + XP + lencana Detektif) TETAP hidup tanpa API, bukan fallbackReply yang
-        // tak pernah mengoreksi. Justru pas skenario "demo tak boleh mati", pembeda utama tetap tampil.
         const hasil = responLokal(sesi?.id ?? "", clean, muridSt.current, sesi?.muridId);
         reply = hasil.reply;
         understood = hasil.understood;
@@ -337,35 +299,27 @@ export default function AjariPage() {
     setMuridMood(mood);
     setMessages((m) => [...m, { from: "murid", text: reply }]);
 
-    // Momen protégé effect: murid menandai SENDIRI (dikoreksi:true) saat guru berhasil
-    // membetulkan miskonsepsinya, sinyal eksplisit, bukan tebakan dari transisi mood.
-    // Catat koreksi (metrik USP + XP + lencana) HANYA untuk topik yang BELUM dikuasai, cegah
-    // "farming" penghitung koreksi/lencana Detektif dengan mengulang topik tuntas (XP pun tak masuk).
     if (dikoreksi && sesi && !isDone(sesi.id)) {
       const beforeKor = loadProgress();
-      bumpKoreksi(); // catat: 1 miskonsepsi berhasil dikoreksi (metrik USP)
+      bumpKoreksi();
       addSessionXp(XP_KOREKSI);
-      // rayakan lewat satu sistem toast terpusat (hindari 2 toast tumpang-tindih)
-      // Toast koreksi = sorotan momen (bukan angka), sebab +15 XP-nya sudah ikut di toast total XP
-      // saat sesi/soal selesai → hindari angka dobel yang bikin kesan XP lebih besar dari kenyataan.
       celebrate([{ kind: "koreksi", label: "Koreksi tepat! 🎯", sub: `Kamu mengoreksi ${murid}` }]);
-      celebrateBadges(beforeKor, loadProgress()); // mis. lencana "Detektif Miskonsepsi"
+      celebrateBadges(beforeKor, loadProgress());
     }
 
     if (understood) {
-      // Mode LOKAL: satu siklus (keliru→koreksi→paham) = sesi tuntas, tak lanjut soal berikutnya.
       if (PAKAI_GEMINI && soalIdx < totalSoal - 1) {
         const ni = soalIdx + 1;
         setSoalIdx(ni);
         addSessionXp(XP_SOAL_LANJUT);
-        flushXp(); // satu tahapan (soal) selesai → simpan XP-nya (partial credit)
+        flushXp();
         setMessages((m) => [
           ...m,
           { from: "murid", text: `Aku paham soal itu! 🎉 (${ni}/${totalSoal}) Sekarang bantu aku yang ini ya: ${soalList[ni]}` },
         ]);
       } else {
-        setReteach(hitungReteach(sesi)); // tangkap SEBELUM completeTopic → tak ada kedip klaim XP
-        setDone(true); // sesi tuntas
+        setReteach(hitungReteach(sesi));
+        setDone(true);
       }
     }
   }
@@ -409,16 +363,14 @@ export default function AjariPage() {
     setSumber([]);
     setShowKunci(false);
     setShowSymbols(false);
-    muridSt.current = newMuridState(); // ulangi dari awal: murid belum bikin kesalahan
+    muridSt.current = newMuridState();
   }
 
-  // Ganti murid/topik tanpa pindah halaman: simpan sesi baru + reset state chat + sapaan murid baru.
   function beginSesi(s: Sesi) {
     setSesiState(s);
     setSoalIdx(0);
     const nm = s.muridNama || namaMurid(pengajar);
     const firstSoal = (s.soalList?.length ? s.soalList : [s.soal ?? SOAL_DEFAULT])[0] ?? SOAL_DEFAULT;
-    // Muat memori murid baru dulu → sapaan langsung sadar-memori.
     const mem = loadProfil(s.muridId ?? UTAMA_ID);
     setProfil(mem);
     setMessages([{ from: "murid", text: sapaanMemori(mem, sap, firstSoal) ?? greetDefault(nm, sap, firstSoal) }]);
@@ -440,11 +392,10 @@ export default function AjariPage() {
     muridSt.current = newMuridState();
   }
 
-  // Pilih materi untuk murid (dari panel kiri) → mulai sesi baru dengan murid itu.
   function pickTopic(id: string) {
     const m = pickFor;
     setPickFor(null);
-    if (!resolveTopik(id)) return; // topik tak dikenal → abaikan
+    if (!resolveTopik(id)) return;
     const s = buildSesi(id, m);
     setSesi(s);
     beginSesi(s);
@@ -452,7 +403,6 @@ export default function AjariPage() {
 
   if (showRapor)
     return (
-      // Rapor panjang → kontainer scroll sendiri (main /ajari kini overflow-hidden). pb utk menu-bawah mobile.
       <div className="h-full overflow-y-auto px-4 pb-[84px] pt-5 md:px-8 lg:pb-8">
         <div className="mx-auto max-w-2xl">
           <Rapor
@@ -473,17 +423,14 @@ export default function AjariPage() {
 
   const stepNo = messages.filter((m) => m.from === "kamu").length + 1;
   const chips = STARTERS.filter((c) => !used.includes(c));
-  // Mode aktif: "Kelas" (murid buatan) vs "Petualangan Pribadi" (Pio/murid utama, dari Peta/solo).
   const isKelas = !!sesi?.muridId && sesi.muridId !== UTAMA_ID;
-  // Ukuran soal ADAPTIF: makin panjang teks soal, makin kecil font-nya agar tak melebar / makan banyak tempat.
   const soalLen = soalAktif.length;
   const soalSize =
-    soalLen > 70 ? "text-sm sm:text-base"
-      : soalLen > 44 ? "text-base sm:text-lg"
-        : soalLen > 24 ? "text-lg sm:text-xl"
-          : "text-xl sm:text-2xl";
+    soalLen > 70 ? "text-[14px] sm:text-[16px] xl:text-[18px]"
+      : soalLen > 44 ? "text-[16px] sm:text-[18px] xl:text-[20px]"
+        : soalLen > 24 ? "text-[18px] sm:text-[20px] xl:text-[22px]"
+          : "text-[20px] sm:text-[22px] xl:text-[24px]";
 
-  // Belum boleh mengajar (Quiz belum lulus) → PANDUAN di halaman ini, bukan lompatan diam-diam ke Materi.
   if (needStage)
     return (
       <div className="mx-auto flex min-h-[68vh] w-full max-w-md flex-col items-center justify-center gap-5 px-4 text-center">
@@ -529,13 +476,11 @@ export default function AjariPage() {
       )}
       {pickFor && <MuridPicker murid={pickFor} taken={new Set<string>()} onClose={() => setPickFor(null)} onPick={pickTopic} />}
 
-      {/* KIRI: daftar murid AI (desktop) */}
-      <aside className="hidden w-[228px] flex-none flex-col overflow-hidden border-r border-line bg-surface-2/30 lg:flex">
+      <aside className="hidden w-[200px] xl:w-[228px] flex-none flex-col overflow-hidden border-r border-line bg-surface-2/30 lg:flex">
         <div className="flex flex-none items-center gap-1.5 border-b border-line px-3 py-3 text-[11px] font-extrabold uppercase tracking-wider text-ink-soft">
           <Users size={13} className="text-[var(--primary)]" /> Ajari siapa?
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
-          {/* MODE 1: Petualangan Pribadi (Pio, progres pribadi lewat Peta) */}
           <Link
             href="/belajar"
             className="mb-1 flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition hover:brightness-105"
@@ -548,41 +493,44 @@ export default function AjariPage() {
             </span>
           </Link>
 
-          {/* MODE 2: Kelas (murid buatanmu, tiap murid naik level sendiri) */}
           <p className="px-2 pb-1 pt-2.5 text-[10px] font-extrabold uppercase tracking-wider text-ink-soft">Kelas</p>
           {muridList.map((mu) => {
             const on = sesi?.muridId === mu.id;
             const utama = mu.id === UTAMA_ID;
-            const pk = pangkatMurid(mu.xp ?? 0); // gelar + level murid ini
+            const pk = pangkatMurid(mu.xp ?? 0);
             return (
               <button
                 key={mu.id}
                 onClick={() => setPickFor(mu)}
-                className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors ${on ? "bg-[var(--tint)]" : "hover:bg-surface-2"}`}
+                className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-left transition-all ${on ? "bg-surface shadow-sm ring-1 ring-[var(--primary)]/20" : "hover:bg-surface-2/60"}`}
               >
-                <Mascot avatar={mu.avatar} size={34} className="flex-none" />
+                {on && <div className="absolute bottom-2 left-0 top-2 w-1 rounded-r-md bg-[var(--primary)] shadow-[0_0_8px_var(--primary)]" />}
+                <Mascot avatar={mu.avatar} size={34} className={`flex-none transition-transform ${on ? "scale-105" : "group-hover:scale-105"}`} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-display text-[13px] font-extrabold leading-tight">{mu.nama}</span>
-                  <span className="block truncate text-[10px] text-ink-soft tnum">{utama ? "Utama · " : ""}{bidangShort(mu.kategori)} · Lv {pk.level}</span>
+                  <span className={`block truncate font-display text-[13px] font-extrabold leading-tight ${on ? "text-[var(--primary-deep)]" : "text-ink"}`}>
+                    {mu.nama}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[10px] font-medium text-ink-soft tnum">
+                    {utama ? <span className="font-bold text-[var(--primary-deep)]">Utama</span> : bidangShort(mu.kategori)} · Lv {pk.level}
+                  </span>
                 </span>
               </button>
             );
           })}
+
+          <Link
+            href="/kelas"
+            className="mt-4 flex flex-none items-center justify-center gap-1.5 rounded-xl border border-[var(--primary)]/20 bg-surface px-4 py-2.5 text-[12px] font-bold text-[var(--primary)] shadow-sm transition-colors hover:bg-[var(--tint)]/50 hover:border-[var(--primary)]/40"
+          >
+            <Users size={14} /> Kelola murid
+          </Link>
         </div>
-        <Link
-          href="/kelas"
-          className="flex flex-none items-center justify-center gap-1.5 border-t border-line py-3 text-[12px] font-bold text-[var(--primary)] transition-colors hover:bg-[var(--tint)]/50"
-        >
-          <Users size={14} /> Kelola murid
-        </Link>
       </aside>
 
-      {/* TENGAH: chat + panel pembahasan */}
       <div className="flex min-w-0 flex-1 overflow-hidden">
         <section className="relative flex min-w-0 flex-1 flex-col">
         <p className="sr-only" role="status" aria-live="polite">{typing ? `${murid} sedang mengetik…` : ""}</p>
 
-        {/* HEADER chat (fixed): identitas + papan soal */}
         <div className="flex-none border-b border-line px-3 pb-2.5 pt-2.5 sm:px-4">
           <div className="mb-2 flex items-center gap-2">
             <Mascot mood={typing ? "curious" : muridMood} size={32} avatar={muridAvatar} char={pengajar.muridChar} className="animate-float" />
@@ -629,24 +577,27 @@ export default function AjariPage() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-line p-2 text-center shadow-[var(--shadow-1)] sm:p-2.5" style={{ background: "linear-gradient(to bottom, var(--surface), var(--surface-2))" }}>
-            <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-soft">
-              {bidangAktif && <span className="text-[var(--primary-deep)]">{bidangAktif} ·</span>}
-              {topikAktif}
+          <div className="relative overflow-hidden rounded-2xl border border-[var(--primary)]/20 bg-surface p-3 text-center shadow-[0_8px_30px_-12px_rgba(21,145,220,0.25)] sm:p-4">
+            <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-transparent via-[var(--primary)]/40 to-transparent" />
+            <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--primary-deep)]/70">
+              {bidangAktif && <span>{bidangAktif} ·</span>}
+              <span className="text-[var(--primary-deep)]">{topikAktif}</span>
               {totalSoal > 1 && (
-                <span className="text-[var(--primary-deep)]">· {Math.min(soalIdx + 1, totalSoal)}/{totalSoal}</span>
+                <span>· {Math.min(soalIdx + 1, totalSoal)}/{totalSoal}</span>
               )}
             </div>
-            <p className={`mt-1 font-display font-extrabold leading-snug tracking-tight ${soalSize}`}>{prettyMath(soalAktif)}</p>
-            <span aria-hidden className="mx-auto mt-1.5 block h-0.5 w-8 rounded-full" style={{ background: "color-mix(in srgb, var(--primary) 60%, transparent)" }} />
+            <p className={`relative z-10 mt-1.5 font-display font-extrabold leading-snug tracking-tight text-ink ${soalSize}`}>
+              {prettyMath(soalAktif)}
+            </p>
+            <div className="mx-auto mt-2.5 h-[1px] w-12 bg-gradient-to-r from-transparent via-[var(--primary)]/30 to-transparent" />
             {sumber.length > 0 && !demo && (
-              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--tint)] px-2.5 py-0.5 text-[10px] font-bold text-[var(--primary-deep)]">
-                <BookCheck size={11} /> Sumber: Kurikulum Merdeka · {sumber.slice(0, 2).join(" · ")}
+              <p className="mx-auto mt-3 flex w-fit items-center gap-1.5 rounded-full border border-[var(--primary)]/10 bg-[var(--tint)]/40 px-3 py-1 text-[10px] font-bold text-[var(--primary-deep)]">
+                <BookCheck size={12} className="opacity-70" /> 
+                <span>Kurikulum Merdeka · {sumber.slice(0, 2).join(" · ")}</span>
               </p>
             )}
           </div>
 
-          {/* catatan fokus 1-baris (dari memori sesi lalu) */}
           {profil?.weakest && !done && (
             <div className="mt-2 flex items-center gap-2 rounded-xl bg-[var(--tint)]/60 px-3 py-1.5 text-[12px]">
               <BrainCircuit size={14} className="flex-none text-[var(--primary-deep)]" />
@@ -658,7 +609,6 @@ export default function AjariPage() {
           )}
         </div>
 
-        {/* PESAN: satu-satunya yang scroll */}
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4">
           <div
             role="log"
@@ -678,7 +628,7 @@ export default function AjariPage() {
                     ) : (
                       <Mascot mood="curious" size={30} className="mb-1" avatar={muridAvatar} char={pengajar.muridChar} />
                     )}
-                    <p className="max-w-[80%] rounded-[22px] rounded-bl-sm bg-surface-2 px-3.5 py-2 text-[14px] leading-relaxed" style={{ boxShadow: "0 5px 18px -8px color-mix(in srgb, var(--primary) 22%, transparent)" }}>
+                    <p className="max-w-[80%] rounded-[22px] rounded-bl-sm bg-surface-2 px-3.5 py-2 text-[13px] md:text-[14px] xl:text-[15px] leading-relaxed" style={{ boxShadow: "0 5px 18px -8px color-mix(in srgb, var(--primary) 22%, transparent)" }}>
                       {prettyMath(m.text)}
                     </p>
                   </div>
@@ -687,7 +637,7 @@ export default function AjariPage() {
               return (
                 <div key={i} className="animate-rise flex max-w-[80%] flex-col items-end self-end">
                   <span className="mb-1 mr-1 text-[11px] font-extrabold uppercase tracking-wide text-[var(--primary-deep)]">Kamu · Langkah {kStep}</span>
-                  <p className="rounded-[22px] rounded-br-sm bg-gradient-to-br from-[var(--cta-1)] to-[var(--cta-2)] px-3.5 py-2 text-[14px] leading-relaxed text-white" style={{ boxShadow: "0 8px 20px -8px color-mix(in srgb, var(--primary) 55%, transparent)" }}>
+                  <p className="rounded-[22px] rounded-br-sm bg-gradient-to-br from-[var(--cta-1)] to-[var(--cta-2)] px-3.5 py-2 text-[13px] md:text-[14px] xl:text-[15px] leading-relaxed text-white" style={{ boxShadow: "0 8px 20px -8px color-mix(in srgb, var(--primary) 55%, transparent)" }}>
                     {prettyMath(m.text)}
                   </p>
                 </div>
@@ -713,7 +663,6 @@ export default function AjariPage() {
           </button>
         )}
 
-        {/* LAPIS 3: Input (sticky di mobile) atau kartu selesai */}
         {done ? (
           <div className="aa-card relative flex flex-none flex-col items-center gap-3 overflow-visible p-5 text-center">
             <Konfeti count={20} colors={["#1591dc", "#4bb8fa", "#f5a524", "#22a06b", "#2c5ead"]} className="pointer-events-none absolute inset-0 overflow-visible" />
@@ -738,20 +687,19 @@ export default function AjariPage() {
             </div>
           </div>
         ) : (
-          <div className="flex-none border-t border-line px-3 py-2.5 sm:px-4">
-            {/* mobile: pembahasan collapsible (rail tak dirender di mobile) */}
-            {bantuan && (
-              <button
-                onClick={() => setShowKunci(true)}
-                className="mx-auto mb-2 flex w-fit items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-bold text-ink-soft transition hover:text-ink hover:brightness-110 lg:hidden"
-                style={{ background: "color-mix(in srgb, var(--reward) 12%, var(--surface-2))" }}
-              >
-                <KeyRound size={14} className="flex-none text-[var(--reward)]" />
-                Mentok? Lihat contoh
-              </button>
-            )}
-            <div className="aa-card flex flex-col gap-2 p-2.5 md:p-3">
-              {/* kalimat pembuka, hanya di awal; satu baris ringkas yang bisa digeser (tak menumpuk) */}
+          <div className="flex-none px-3 pb-4 sm:px-4 sm:pb-6">
+            <div className="mx-auto max-w-2xl">
+              {bantuan && (
+                <button
+                  onClick={() => setShowKunci(true)}
+                  className="mx-auto mb-3 flex w-fit items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-bold text-ink-soft transition hover:text-ink hover:brightness-110 lg:hidden"
+                  style={{ background: "color-mix(in srgb, var(--reward) 12%, var(--surface-2))" }}
+                >
+                  <Lightbulb size={14} className="flex-none text-[var(--reward)]" />
+                  Mentok? Lihat petunjuk 💡
+                </button>
+              )}
+              <div className="aa-card flex flex-col gap-2 p-2.5 md:p-3 shadow-md border border-[var(--primary)]/10 ring-1 ring-[var(--primary)]/5">
               {teacherTurns === 0 && chips.length > 0 && (
                 <div className="-mx-0.5 flex gap-1.5 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {chips.map((c) => (
@@ -766,7 +714,6 @@ export default function AjariPage() {
                   ))}
                 </div>
               )}
-              {/* papan simbol matematika, disembunyikan default biar ringkas, muncul saat tombol π ditekan */}
               {showSymbols && (
                 <div className="-mx-0.5 flex gap-1.5 overflow-x-auto px-0.5 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {SYMBOLS.map((sy) => (
@@ -782,7 +729,6 @@ export default function AjariPage() {
                   ))}
                 </div>
               )}
-              {/* input + tombol simbol (toggle) */}
               <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="flex items-center gap-2">
                 <button
                   type="button"
@@ -802,7 +748,7 @@ export default function AjariPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={`Tulis langkah ke-${stepNo}…`}
-                  className="min-w-0 flex-1 rounded-full border border-line bg-surface px-4 py-3 text-[15px] outline-none transition-colors focus:border-[var(--primary)]"
+                  className="min-w-0 flex-1 rounded-full border border-line bg-surface px-4 py-3 text-[14px] md:text-[15px] outline-none transition-colors focus:border-[var(--primary)]"
                 />
                 <button
                   type="submit"
@@ -815,32 +761,33 @@ export default function AjariPage() {
               </form>
             </div>
           </div>
-        )}
+        </div>
+      )}
         </section>
 
-        {/* PANEL PEMBAHASAN samping (desktop): melebar & menggeser chat jadi 50/50, transisi halus */}
+        {/* PANEL PEMBAHASAN samping (desktop): menggunakan fixed width yang adaptif */}
         {bantuan && !done && (
-          <aside className={`hidden shrink-0 overflow-hidden border-l border-line transition-[width] duration-300 ease-out lg:block ${showKunci ? "w-1/2" : "w-0"}`}>
+          <aside className={`hidden shrink-0 overflow-hidden border-l border-line transition-[width] duration-300 ease-out lg:block ${showKunci ? "w-[300px] xl:w-[380px]" : "w-0"}`}>
             <PembahasanPanel bantuan={bantuan} topik={topikAktif} onClose={() => setShowKunci(false)} />
           </aside>
         )}
         </div>
 
-        {/* KANAN: ikon panduan (desktop) */}
+        {/* KANAN: ikon petunjuk & contoh (desktop) */}
         {bantuan && !done && (
           <aside className="hidden w-[52px] flex-none flex-col items-center gap-2 border-l border-line py-3 lg:flex">
             <button
               onClick={() => setShowKunci((v) => !v)}
-              title="Panduan & contoh"
-              aria-label="Panduan & contoh"
+              title={showKunci ? "Tutup petunjuk" : "Petunjuk & contoh"}
+              aria-label="Petunjuk & contoh"
               aria-pressed={showKunci}
-              className={`grid h-11 w-11 place-items-center rounded-full border transition-colors ${
+              className={`grid h-11 w-11 place-items-center rounded-full border transition-all ${
                 showKunci
-                  ? "border-[var(--primary)] bg-[var(--tint)] text-[var(--primary-deep)]"
-                  : "border-line bg-surface text-ink-soft hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  ? "border-[var(--reward)] bg-[color-mix(in_srgb,var(--reward)_15%,var(--surface))] text-[var(--reward-ink)] shadow-sm"
+                  : "border-line bg-surface text-ink-soft hover:border-[var(--reward)] hover:text-[var(--reward-ink)] hover:bg-surface-2"
               }`}
             >
-              <KeyRound size={18} />
+              <Lightbulb size={18} />
             </button>
           </aside>
         )}
@@ -855,67 +802,141 @@ function PembahasanBody({ bantuan }: { bantuan: MateriRingkas }) {
   const segs = parseContoh(bantuan.contoh);
   const keliru = parseMiskonsepsi(bantuan.miskonsepsi);
   const [showKeliru, setShowKeliru] = useState(false);
+
+  const contohGroups: ContohSeg[][] = [];
+  if (segs) {
+    let current: ContohSeg[] = [];
+    segs.forEach((s) => {
+      if (s.t === "contoh") {
+        if (current.length > 0) contohGroups.push(current);
+        current = [s];
+      } else {
+        current.push(s);
+      }
+    });
+    if (current.length > 0) contohGroups.push(current);
+  }
+
+  const renderSegs = (list: ContohSeg[]) => {
+    return list.map((s, i) => {
+      if (s.t === "soal")
+        return (
+          <div key={i} className="rounded-2xl border border-line bg-surface-2/60 px-4 py-3 font-display text-[13px] xl:text-[15px] font-bold text-ink shadow-sm">
+            {prettyMath(s.text)}
+          </div>
+        );
+      if (s.t === "langkah")
+        return (
+          <div key={i} className="group/step relative flex flex-col gap-2 rounded-2xl border border-line/60 bg-surface/80 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-surface hover:shadow-md">
+            <div className="flex items-center gap-2.5">
+              <span className="tnum inline-flex items-center rounded-lg bg-[var(--tint)]/80 px-2.5 py-1 font-display text-[11px] font-black uppercase tracking-wider text-[var(--primary-deep)] ring-1 ring-[var(--primary)]/10 transition-colors group-hover/step:bg-[var(--primary)] group-hover/step:text-white group-hover/step:ring-[var(--primary)]/30">
+                Langkah {s.n}
+              </span>
+              {s.label && <b className="text-[13.5px] font-bold text-ink">{s.label}</b>}
+            </div>
+            <p className="text-[13px] md:text-[14px] xl:text-[15px] font-medium leading-relaxed text-ink/90">
+              {prettyMath(s.text)}
+            </p>
+          </div>
+        );
+      const isJadi = /^jadi\b/i.test(s.text);
+      return (
+        <div
+          key={i}
+          className={
+            isJadi
+              ? "relative flex items-start gap-3 rounded-2xl border border-[var(--node-good)]/40 bg-[color-mix(in_srgb,var(--node-good)_10%,var(--surface))] p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+              : "ml-4 mt-1 rounded-xl border-l-2 border-line/80 bg-surface-2/30 px-3.5 py-2.5"
+          }
+        >
+          {isJadi && (
+            <span className="mt-0.5 grid h-6 w-6 flex-none place-items-center rounded-full bg-[var(--node-good)] text-[12px] font-bold text-white shadow-sm shadow-[var(--node-good)]/30 ring-4 ring-[var(--node-good)]/10">
+              ✓
+            </span>
+          )}
+          <p className={`text-[13px] md:text-[14px] xl:text-[15px] leading-relaxed ${isJadi ? "font-bold text-ink" : "font-medium text-ink-soft"}`}>
+            {prettyMath(s.text)}
+          </p>
+        </div>
+      );
+    });
+  };
+
   return (
     <>
-      <p className="mb-3 font-display text-sm font-extrabold">Cara menyelesaikan, langkah demi langkah</p>
-      {segs ? (
-        <div className="flex flex-col gap-2.5">
-          {segs.map((s, i) => {
-            if (s.t === "contoh")
-              return (
-                <div key={i} className="mt-1 flex items-center gap-2 font-display text-sm font-extrabold text-[var(--primary-deep)]">
-                  <span className="h-4 w-1 flex-none rounded bg-[var(--primary)]" />
-                  {prettyMath(s.text)}
-                </div>
-              );
-            if (s.t === "soal")
-              return (
-                <div key={i} className="rounded-xl bg-[var(--tint)]/30 px-3 py-2 font-display text-[15px] font-bold text-ink">
-                  {prettyMath(s.text)}
-                </div>
-              );
-            if (s.t === "langkah")
-              return (
-                <div key={i} className="flex gap-2.5">
-                  <span className="mt-0.5 grid h-6 w-6 flex-none place-items-center rounded-full bg-[var(--primary)] text-[12px] font-bold text-white tnum">{s.n}</span>
-                  <p className="text-[14px] leading-relaxed text-ink">
-                    {s.label && <b className="text-ink-soft">{s.label} </b>}
-                    {prettyMath(s.text)}
-                  </p>
-                </div>
-              );
-            const isJadi = /^jadi\b/i.test(s.text);
+      {bantuan.rumus && bantuan.rumus.length > 0 && (
+        <details className="group mb-6 rounded-2xl border border-line bg-surface shadow-sm open:pb-4" open={false}>
+          <summary className="flex cursor-pointer select-none list-none items-center gap-2.5 rounded-2xl px-4 py-3 transition-colors hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
+            <div className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-[var(--primary)]/15 text-[var(--primary-deep)] shadow-sm">
+              <Pi size={15} />
+            </div>
+            <h3 className="font-display text-[13px] xl:text-[14px] font-extrabold text-ink">
+              Rumus Kunci Topik Ini
+            </h3>
+            <ChevronDown size={16} className="ml-auto text-ink-soft transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="flex flex-wrap gap-2 px-4 pt-1">
+            {bantuan.rumus.map((r, i) => (
+              <span key={i} className="inline-flex items-center rounded-xl border border-[var(--primary)]/20 bg-surface px-3 py-1.5 font-display text-[12px] xl:text-[13.5px] font-bold text-[var(--primary-deep)] shadow-sm">
+                {prettyMath(r)}
+              </span>
+            ))}
+          </div>
+        </details>
+      )}
+
+      <div className="mb-4 flex items-center gap-2.5 px-1">
+        <div className="grid h-8 w-8 flex-none place-items-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] shadow-sm ring-1 ring-[var(--primary)]/10">
+          <Key size={16} />
+        </div>
+        <h3 className="font-display text-[14px] xl:text-[15px] font-extrabold text-ink">
+          Contoh Kasus Serupa
+        </h3>
+      </div>
+      {contohGroups.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {contohGroups.map((g, i) => {
+            const isContoh = g[0].t === "contoh";
+            if (!isContoh) {
+              return <div key={i} className="flex flex-col gap-2.5">{renderSegs(g)}</div>;
+            }
             return (
-              <div key={i} className={`flex gap-2 ${isJadi ? "" : "pl-[2.1rem]"}`}>
-                {isJadi && <span className="mt-0.5 grid h-6 w-6 flex-none place-items-center rounded-full bg-[var(--node-good)] text-[12px] text-white">✓</span>}
-                <p className={`text-[13px] leading-relaxed ${isJadi ? "font-bold text-ink" : "text-ink-soft"}`}>{prettyMath(s.text)}</p>
-              </div>
+              <details key={i} className="group rounded-2xl border border-line bg-surface shadow-sm open:pb-4" open={false}>
+                <summary className="flex cursor-pointer select-none list-none items-center gap-2.5 rounded-2xl px-4 py-3 transition-colors hover:bg-[var(--tint)]/50 [&::-webkit-details-marker]:hidden">
+                  <span className="h-4 w-1.5 flex-none rounded-full bg-[var(--primary)]" />
+                  <span className="flex-1 font-display text-[13px] xl:text-[14px] font-extrabold text-[var(--primary-deep)]">{prettyMath(g[0].text)}</span>
+                  <ChevronDown size={16} className="text-ink-soft transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="flex flex-col gap-2.5 px-4 pt-2">
+                  {renderSegs(g.slice(1))}
+                </div>
+              </details>
             );
           })}
         </div>
       ) : (
-        <p className="whitespace-pre-line text-[14px] leading-relaxed text-ink-soft">{prettyMath(bantuan.contoh)}</p>
+        <div className="rounded-xl border border-line bg-surface p-4">
+          <p className="whitespace-pre-line text-[13px] md:text-[14px] xl:text-[15px] leading-relaxed text-ink">{prettyMath(bantuan.contoh)}</p>
+        </div>
       )}
 
       {keliru && keliru.length > 0 && (
-        <div className="mt-5">
-          <button
-            onClick={() => setShowKeliru((v) => !v)}
-            aria-expanded={showKeliru}
-            className="flex w-full items-center gap-1.5 font-display text-sm font-extrabold text-[var(--node-weak)]"
-          >
-            <AlertTriangle size={15} className="flex-none" />
-            <span className="text-left">{keliru.length} kesalahan umum yang perlu dikoreksi</span>
-            <ChevronDown size={16} className={`ml-auto flex-none transition-transform ${showKeliru ? "rotate-180" : ""}`} />
-          </button>
-          {showKeliru && (
-            <div className="mt-2.5 flex flex-col gap-2">
-              {keliru.map((k, i) => (
-                <KeliruCard key={i} text={k} />
-              ))}
+        <details className="group mt-6" open={false}>
+          <summary className="flex cursor-pointer select-none list-none items-center gap-2.5 rounded-2xl bg-[color-mix(in_srgb,var(--node-mid)_8%,var(--surface))] px-4 py-3 transition-colors hover:bg-[color-mix(in_srgb,var(--node-mid)_15%,var(--surface))] [&::-webkit-details-marker]:hidden">
+            <div className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-[var(--node-mid)]/20 text-[var(--reward-ink)] shadow-sm">
+              <Flag size={15} />
             </div>
-          )}
-        </div>
+            <span className="flex-1 font-display text-[13px] md:text-[14px] xl:text-[15px] font-extrabold text-[var(--reward-ink)]">
+              Awas! {keliru.length} Jebakan Umum
+            </span>
+            <ChevronDown size={16} className="text-[var(--reward-ink)]/70 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-3 flex flex-col gap-3">
+            {keliru.map((k, i) => (
+              <KeliruCard key={i} text={k} />
+            ))}
+          </div>
+        </details>
       )}
     </>
   );
@@ -924,16 +945,16 @@ function PembahasanBody({ bantuan }: { bantuan: MateriRingkas }) {
 // Panel pembahasan SAMPING (desktop), muncul di sebelah chat (split), bukan pop-up.
 function PembahasanPanel({ bantuan, topik, onClose }: { bantuan: MateriRingkas; topik: string; onClose: () => void }) {
   return (
-    <div className="flex h-full min-w-[320px] flex-col bg-surface-2/20">
+    <div className="flex h-full w-[300px] xl:w-[380px] flex-col bg-surface-2/20">
       <div className="flex flex-none items-center gap-2.5 border-b border-line px-4 py-3">
-        <span className="grid h-8 w-8 flex-none place-items-center rounded-xl bg-[var(--tint)] text-[var(--primary-deep)]">
-          <KeyRound size={16} />
+        <span className="grid h-8 w-8 flex-none place-items-center rounded-xl bg-[color-mix(in_srgb,var(--reward)_15%,var(--surface))] text-[var(--reward-ink)]">
+          <Lightbulb size={16} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Pembahasan</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Petunjuk &amp; Contoh</p>
           <h2 className="truncate font-display text-sm font-extrabold leading-tight">{topik}</h2>
         </div>
-        <button onClick={onClose} aria-label="Tutup pembahasan" className="grid h-8 w-8 flex-none place-items-center rounded-lg text-ink-soft hover:bg-surface-2">
+        <button onClick={onClose} aria-label="Tutup petunjuk" className="grid h-8 w-8 flex-none place-items-center rounded-lg text-ink-soft hover:bg-surface-2">
           <X size={16} />
         </button>
       </div>
@@ -977,11 +998,11 @@ function PembahasanModal({
       >
         <div className="mx-auto mt-2 h-1.5 w-10 flex-none rounded-full bg-line sm:hidden" aria-hidden />
         <div className="flex flex-none items-center gap-3 border-b border-line p-4 sm:p-5">
-          <span className="grid h-10 w-10 flex-none place-items-center rounded-2xl bg-[var(--tint)] text-[var(--primary-deep)]">
-            <KeyRound size={18} />
+          <span className="grid h-10 w-10 flex-none place-items-center rounded-2xl bg-[color-mix(in_srgb,var(--reward)_15%,var(--surface))] text-[var(--reward-ink)]">
+            <Lightbulb size={18} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Pembahasan</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Petunjuk &amp; Contoh</p>
             <h2 className="truncate font-display text-lg font-extrabold leading-tight">{topik}</h2>
           </div>
           <button ref={closeRef} onClick={onClose} aria-label="Tutup" className="grid h-10 w-10 flex-none place-items-center rounded-lg text-ink-soft hover:bg-surface-2">

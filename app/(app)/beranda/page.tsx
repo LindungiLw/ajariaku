@@ -34,10 +34,14 @@ function StatIcon({ icon: Icon, color, solid = false, size = 18 }: { icon: (prop
 function StatCard({ color, className = "", children }: { color: string; className?: string; children: ReactNode }) {
   return (
     <div
-      className={`relative overflow-visible rounded-[var(--r-card)] border bg-surface p-4 ${className}`}
+      className={`group relative overflow-visible rounded-[var(--r-card)] border bg-surface p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${className}`}
       style={{ borderColor: `color-mix(in srgb, ${color} 34%, var(--line))`, boxShadow: `0 1px 3px color-mix(in srgb, ${color} 15%, transparent), 0 4px 12px -8px color-mix(in srgb, ${color} 32%, transparent)` }}
     >
-      {children}
+      {/* Subtle glow on hover */}
+      <div className="absolute inset-0 rounded-[var(--r-card)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ boxShadow: `0 8px 24px -8px color-mix(in srgb, ${color} 40%, transparent)` }} />
+      <div className="relative z-10 flex h-full flex-col">
+        {children}
+      </div>
     </div>
   );
 }
@@ -118,9 +122,9 @@ export default function BerandaPage() {
 
             <div className="min-w-0 flex-1">
               {/* gelembung obrolan murid */}
-              <div className="rounded-2xl rounded-bl-sm border border-line bg-surface-2 px-4 py-3 text-[14px] leading-snug">
+              <div className="relative rounded-2xl rounded-bl-sm border border-[var(--primary)]/20 bg-gradient-to-br from-surface to-surface-2 px-4 py-3 text-[14px] leading-relaxed shadow-[0_8px_30px_-12px_rgba(21,145,220,0.2)]">
                 Halo, <b>{sapaan(pengajar)}</b>! Aku <b>{murid}</b> 👋 Aku lagi bingung soal{" "}
-                <b className="text-[var(--primary)]">{active.judul}</b>, bantu aku paham dong!
+                <b className="text-[var(--primary-deep)]">{active.judul}</b>, bantu aku paham dong!
               </div>
               {/* aksi */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
