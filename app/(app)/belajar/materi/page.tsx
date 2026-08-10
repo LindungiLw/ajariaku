@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Bookmark, ChevronDown, ChevronLeft, ChevronRight, Info, AlertTriangle, Lock } from "lucide-react";
+import { ArrowRight, Bookmark, ChevronDown, ChevronLeft, ChevronRight, Info, AlertTriangle, Lock, RotateCcw } from "lucide-react";
 import { BookOpen, GraduationCap, Gamepad2 } from "@/components/brand-icons";
 import { Mascot } from "@/components/mascot";
 import { materiById } from "@/lib/materi";

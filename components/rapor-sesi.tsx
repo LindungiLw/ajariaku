@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, RotateCcw, AlertTriangle, Lightbulb, BookCheck } from "lucide-react";
+import { ArrowRight, RotateCcw, AlertTriangle, Lightbulb, BookCheck, Star } from "lucide-react";
 import { CheckCircle2 } from "@/components/brand-icons";
 import { Mascot } from "@/components/mascot";
 import { Konfeti } from "@/components/confetti";
