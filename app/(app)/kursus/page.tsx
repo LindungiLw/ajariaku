@@ -11,7 +11,7 @@ import { Konfeti } from "@/components/confetti";
 import { muridForTopik } from "@/lib/kelas-topik";
 import { type AvatarSpec } from "@/lib/avatar";
 import { prettyMath } from "@/lib/pretty-math";
-import { Hitung } from "@/components/math-rich";
+import { MathRich, ProseRich, Hitung } from "@/components/math-rich";
 import { buildKursus, acakSeed, jawabInti, type Kartu } from "@/lib/kursus";
 import { topikById } from "@/lib/bank-soal";
 import { buildSesi } from "@/lib/sesi";
@@ -192,7 +192,7 @@ function KartuKonsep({ k, onMulai }: { k: KKonsep; onMulai: () => void }) {
           ))}
         </div>
       )}
-      <p className="text-[15px] leading-relaxed text-ink">{prettyMath(k.inti)}</p>
+      <div className="text-[15px] leading-relaxed text-ink"><ProseRich>{k.inti}</ProseRich></div>
       <button onClick={onMulai} className="aa-btn mt-1 w-full justify-center">
         Mulai <ArrowRight size={18} />
       </button>
@@ -210,13 +210,13 @@ function KartuSusun({ k, onJawab, seed }: { k: KSusun; onJawab: (b: boolean, t: 
   return (
     <div className="flex flex-col gap-3">
       <p className="font-display font-extrabold">Susun langkahnya berurutan</p>
-      {k.soal && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm font-bold text-ink">{prettyMath(k.soal)}</p>}
+      {k.soal && <div className="rounded-lg bg-surface-2 px-3 py-2 text-sm font-bold text-ink"><MathRich>{k.soal}</MathRich></div>}
       <div className="flex min-h-[3rem] flex-col gap-2 rounded-xl border-2 border-dashed border-line p-2">
         {slot.length === 0 && <p className="py-2 text-center text-[13px] text-ink-soft">Ketuk kartu langkah di bawah ↓</p>}
         {slot.map((i, pos) => (
           <button key={i} onClick={() => { setSlot((s) => s.filter((x) => x !== i)); setTray((t) => [...t, i]); }} className="flex items-start gap-2 rounded-lg bg-[var(--tint)]/40 px-3 py-2 text-left text-[14px] leading-relaxed">
             <span className="grid h-5 w-5 flex-none place-items-center rounded-full bg-[var(--primary)] text-[11px] font-bold text-white">{pos + 1}</span>
-            {prettyMath(k.langkah[i])}
+            <MathRich>{k.langkah[i]}</MathRich>
           </button>
         ))}
       </div>
@@ -224,7 +224,7 @@ function KartuSusun({ k, onJawab, seed }: { k: KSusun; onJawab: (b: boolean, t: 
         <div className="flex flex-col gap-2">
           {tray.map((i) => (
             <button key={i} onClick={() => { setTray((t) => t.filter((x) => x !== i)); setSlot((s) => [...s, i]); }} className="rounded-lg border border-line bg-surface px-3 py-2 text-left text-[14px] leading-relaxed transition-colors hover:border-[var(--primary)]">
-              {prettyMath(k.langkah[i])}
+              <MathRich>{k.langkah[i]}</MathRich>
             </button>
           ))}
         </div>
@@ -244,14 +244,14 @@ function KartuNextStep({ k, onJawab, seed }: { k: KNext; onJawab: (b: boolean, t
       {k.sudah.length > 0 && (
         <div className="flex flex-col gap-1 rounded-lg bg-surface-2 p-2.5 text-[13px] leading-relaxed text-ink-soft">
           {k.sudah.map((s, i) => (
-            <span key={i}>✓ {prettyMath(s)}</span>
+            <div key={i} className="flex gap-1.5"><span className="mt-0.5 font-bold text-[var(--node-good)]">✓</span><div className="flex-1"><Hitung text={s} /></div></div>
           ))}
         </div>
       )}
       <div className="flex flex-col gap-2">
         {opsi.map((o, i) => (
           <button key={i} onClick={() => onJawab(o === k.benar, o === k.benar ? "Tepat! 🎯" : "Langkah yang benar:\n" + k.benar)} className="rounded-xl border border-line bg-surface px-3.5 py-2.5 text-left text-[14px] leading-relaxed transition-colors hover:border-[var(--primary)]">
-            {prettyMath(o)}
+            <MathRich>{o}</MathRich>
           </button>
         ))}
       </div>
@@ -268,7 +268,7 @@ function KartuIsian({ k, onJawab }: { k: KIsian; onJawab: (b: boolean, t: string
   return (
     <form onSubmit={(e) => { e.preventDefault(); cek(); }} className="flex flex-col gap-3">
       <p className="font-display font-extrabold">Isi jawabannya</p>
-      <p className="rounded-lg bg-surface-2 px-3 py-2 text-[15px] leading-relaxed text-ink">{prettyMath(k.soal)}</p>
+      <div className="rounded-lg bg-surface-2 px-3 py-2 text-[15px] leading-relaxed text-ink"><ProseRich>{k.soal}</ProseRich></div>
       <input value={val} onChange={(e) => setVal(e.target.value)} placeholder="Ketik jawaban…" inputMode="text" className="rounded-full border border-line bg-surface px-5 py-3 text-[15px] outline-none transition-colors focus:border-[var(--primary)]" />
       <button type="submit" disabled={!val.trim()} className="aa-btn w-full justify-center disabled:opacity-40">
         Cek <ArrowRight size={18} />
@@ -282,7 +282,7 @@ function KartuPilgan({ k, onJawab, seed }: { k: KPilgan; onJawab: (b: boolean, t
   return (
     <div className="flex flex-col gap-3">
       <p className="font-display font-extrabold">Pilih jawaban yang benar</p>
-      <p className="rounded-lg bg-surface-2 px-3 py-2 text-[15px] leading-relaxed text-ink">{prettyMath(k.soal)}</p>
+      <div className="rounded-lg bg-surface-2 px-3 py-2 text-[15px] leading-relaxed text-ink"><ProseRich>{k.soal}</ProseRich></div>
       <div className="grid gap-2 sm:grid-cols-2">
         {opsi.map((o, i) => (
           <button
@@ -290,7 +290,7 @@ function KartuPilgan({ k, onJawab, seed }: { k: KPilgan; onJawab: (b: boolean, t
             onClick={() => onJawab(o === k.benar, (o === k.benar ? "Betul! " : `Jawaban: ${k.benar}. `) + k.pembahasan)}
             className="rounded-xl border border-line bg-surface px-3.5 py-3 text-left text-[14px] font-semibold leading-relaxed transition-colors hover:border-[var(--primary)]"
           >
-            {prettyMath(o)}
+            <MathRich>{o}</MathRich>
           </button>
         ))}
       </div>

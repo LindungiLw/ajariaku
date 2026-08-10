@@ -347,3 +347,31 @@ body {
 /* interaksi kartu */
 .aa-lift { transition: transform .16s ease, box-shadow .2s ease; }
 .aa-lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
+
+/* Aksesibilitas (A11y) */
+html[data-a11y-text="true"] { font-size: 106% !important; }
+
+html[data-a11y-spacing="true"] * { 
+  letter-spacing: 0.05em !important; 
+  line-height: 1.7 !important; 
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-play-state: paused !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html[data-a11y-motion="true"] *, html[data-a11y-motion="true"] *::before, html[data-a11y-motion="true"] *::after {
+  animation-play-state: paused !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-a11y-links="true"] a { 
+  text-decoration: underline !important; 
+  text-decoration-thickness: 2px !important; 
+  text-underline-offset: 4px !important; 
+}

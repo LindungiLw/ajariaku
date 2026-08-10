@@ -1,6 +1,7 @@
 import { Check, X } from "lucide-react";
 import { pisahKeliru } from "@/lib/materi-parse";
 import { prettyMath } from "@/lib/pretty-math";
+import { ProseRich } from "@/components/math-rich";
 
 // Kartu "Sering keliru": pecah satu miskonsepsi jadi bagian yang mudah DIPINDAI (bukan tembok teks):
 // ✗ judul kesalahan (tebal) · ✓ koreksi/detail (lebih ringan) · kotak contoh penyangkal.
@@ -16,23 +17,23 @@ export function KeliruCard({ text }: { text: string }) {
       </span>
       
       <div className="flex min-w-0 flex-1 flex-col gap-3.5">
-        <p className="text-[13px] md:text-[14px] xl:text-[15px] font-bold leading-relaxed text-ink">
-          {prettyMath(salah)}
-        </p>
+        <div className="text-[13px] md:text-[14px] xl:text-[15px] font-bold text-ink">
+          <ProseRich>{salah}</ProseRich>
+        </div>
         
         {koreksi && (
           <div className="flex items-start gap-2.5 rounded-xl border border-[var(--node-good)]/20 bg-[color-mix(in_srgb,var(--node-good)_8%,var(--surface))] p-3 shadow-sm">
             <Check size={16} className="mt-0.5 flex-none text-[var(--node-good)]" />
-            <p className="text-[13px] md:text-[14px] xl:text-[15px] font-medium leading-relaxed text-ink/90">
-              {prettyMath(koreksi)}
-            </p>
+            <div className="text-[13px] md:text-[14px] xl:text-[15px] font-medium text-ink/90">
+              <ProseRich>{koreksi}</ProseRich>
+            </div>
           </div>
         )}
         
         {contoh && (
           <div className="rounded-xl border border-line/60 bg-surface-2/50 px-3.5 py-2.5 text-[13px] md:text-[14px] leading-relaxed text-ink-soft">
-            <span className="font-bold text-ink">Contoh: </span>
-            {prettyMath(contoh)}
+            <span className="mb-1 block font-bold text-ink">Contoh: </span>
+            <ProseRich>{contoh}</ProseRich>
           </div>
         )}
       </div>

@@ -36,7 +36,7 @@ export function CelebrationHost() {
   // disisipkan belakangan: live region yang di-mount bersamaan isinya sering tak terbaca.
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-16 z-50 flex flex-col items-center gap-2 px-4"
+      className="pointer-events-none fixed bottom-4 right-0 left-0 z-50 flex flex-col items-center gap-2 px-4 sm:left-auto sm:bottom-6 sm:right-6 sm:items-end"
       aria-live="polite"
     >
       {toasts.map((t) => {
@@ -44,17 +44,17 @@ export function CelebrationHost() {
         return (
           <div
             key={t.key}
-            className="animate-pop flex w-fit max-w-[92%] items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-2.5 shadow-[var(--shadow-2)]"
+            className="animate-pop flex w-fit max-w-[92%] items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-2.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)] sm:max-w-sm"
           >
             <span
-              className="grid h-9 w-9 flex-none place-items-center rounded-xl text-white"
+              className="grid h-9 w-9 flex-none place-items-center rounded-xl text-white shadow-sm"
               style={{ background: `linear-gradient(140deg, ${warna}, color-mix(in srgb, ${warna} 68%, #000))` }}
             >
               <Icon size={18} />
             </span>
             <span className="min-w-0">
-              <span className="block font-display text-sm font-extrabold leading-tight text-ink">{t.label}</span>
-              <span className="block text-[11px] font-semibold text-ink-soft">{t.sub}</span>
+              <span className="block font-display text-[15px] font-extrabold leading-tight text-ink">{t.label}</span>
+              <span className="block mt-0.5 text-[12px] font-semibold text-ink-soft">{t.sub}</span>
             </span>
           </div>
         );

@@ -181,36 +181,44 @@ function RaporView({
   }, [data.mastery]);
 
   return (
-    <div className="stagger flex flex-col gap-4">
+    <div className="stagger mx-auto flex w-full max-w-2xl flex-col gap-5 sm:gap-6">
       <h1 className="sr-only">Rapor Sesi · {topik}</h1>
-      <section className="aa-card relative flex flex-col items-center gap-3 overflow-visible p-6 text-center">
+      
+      {/* Hero Section */}
+      <section className="relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-[var(--primary)]/20 bg-gradient-to-b from-surface to-[var(--primary)]/5 p-6 text-center shadow-sm sm:p-8">
         {data.mastery >= 70 && shown && (
           <Konfeti
-            count={26}
-            colors={["#e21b3c", "#1368ce", "#d89400", "#26890c", "#ffd54a"]}
-            className="pointer-events-none absolute left-1/2 top-16 overflow-visible"
+            count={30}
+            colors={["#1591dc", "#4bb8fa", "#f5a524", "#22a06b", "#ffd54a"]}
+            className="pointer-events-none absolute left-1/2 top-20 overflow-visible"
           />
         )}
-        <div className="animate-float">
-          <Mascot mood="happy" size={64} avatar={muridAvatar} char={muridChar} />
+        
+        {/* Header Tags */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-float">
+            <Mascot mood="happy" size={72} avatar={muridAvatar} char={muridChar} />
+          </div>
+          <span className="rounded-full bg-[var(--primary)]/10 px-3 py-1 text-[11px] font-bold text-[var(--primary-deep)] shadow-sm ring-1 ring-inset ring-[var(--primary)]/20">
+            Rapor Sesi · {topik}
+          </span>
+          {demo && (
+            <span className="rounded-full bg-[var(--reward)]/10 px-2.5 py-0.5 text-[10px] font-bold text-[var(--reward-ink)] ring-1 ring-inset ring-[var(--reward)]/20">
+              Mode Luring · Analisis Contoh
+            </span>
+          )}
+          {sumber.length > 0 && !demo && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-[10px] font-bold text-ink-soft shadow-sm ring-1 ring-line">
+              <BookCheck size={12} className="text-[var(--primary)]" />
+              Kurikulum Merdeka · {sumber.slice(0, 3).join(" · ")}
+            </span>
+          )}
         </div>
-        <span className="aa-pill-primary">Rapor Sesi · {topik}</span>
-        {demo && (
-          <span
-            className="rounded-full px-2.5 py-0.5 text-[11px] font-bold"
-            style={{ background: "color-mix(in srgb, var(--reward) 16%, transparent)", color: "var(--reward)" }}
-          >
-            Mode luring · analisis contoh
-          </span>
-        )}
-        {sumber.length > 0 && !demo && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--tint)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--primary-deep)]">
-            <BookCheck size={12} /> Sumber: Kurikulum Merdeka · {sumber.slice(0, 3).join(" · ")}
-          </span>
-        )}
-        <div className="relative grid h-32 w-32 place-items-center">
-          <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface-3)" strokeWidth="12" />
+
+        {/* Circular Progress */}
+        <div className="relative mt-2 grid h-40 w-40 place-items-center">
+          <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90 drop-shadow-md">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" className="text-[var(--primary)]/10" strokeWidth="12" />
             <circle
               cx="60"
               cy="60"
@@ -221,43 +229,45 @@ function RaporView({
               strokeLinecap="round"
               strokeDasharray={C}
               strokeDashoffset={shown ? C * (1 - data.mastery / 100) : C}
-              style={{ transition: "stroke-dashoffset 1.1s cubic-bezier(.22,.9,.31,1)" }}
+              style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(.22,.9,.31,1)" }}
             />
           </svg>
           <div className="absolute text-center">
-            <p className="aa-pop-big font-display text-3xl font-extrabold tnum">{count}</p>
-            <p className="-mt-1 text-xs font-bold text-ink-soft">Skor Paham</p>
+            <p className="font-display text-4xl font-black tracking-tight text-ink tnum">{count}</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-widest text-ink-soft">Skor Paham</p>
           </div>
         </div>
-        <p className="text-sm text-ink-soft">
+
+        <p className="mt-2 text-[14px] font-medium text-ink-soft sm:text-[15px]">
           {reteach ? (
             <>Kamu mengajari {murid} lagi, topik ini <b className="text-ink">sudah dikuasai</b> (XP tak ditambah).</>
           ) : (
-            <>Kamu berhasil membuat {murid} paham &amp; dapat <b className="text-[var(--reward-ink)]">+{xp} XP</b></>
+            <>Kamu berhasil membuat {murid} paham &amp; dapat <span className="inline-flex items-center gap-0.5 rounded border border-[var(--reward)]/20 bg-[var(--reward)]/10 px-1.5 py-0.5 font-bold text-[var(--reward-ink)]"><Star size={12} className="fill-[var(--reward)]" /> +{xp} XP</span></>
           )}
         </p>
       </section>
 
       {/* peta pemahaman */}
-      <section className="aa-card p-5">
-        <h2 className="mb-4 font-display text-lg font-extrabold">
+      <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
+        <h2 className="mb-5 font-display text-xl font-extrabold text-ink">
           Peta Pemahaman
         </h2>
-        <ul className="flex flex-col gap-4">
+        <ul className="flex flex-col gap-5">
           {(data.konsep ?? []).map((k) => (
             <li key={k.label}>
-              <div className="mb-1.5 flex items-center justify-between text-sm">
-                <span className="font-semibold">{k.label}</span>
-                <span className="font-bold tnum" style={{ color: LEVEL_COLOR[k.level] }}>
+              <div className="mb-2 flex items-center justify-between text-[14px]">
+                <span className="font-bold text-ink">{k.label}</span>
+                <span className="rounded-md bg-surface-2 px-2 py-0.5 font-display text-[13px] font-bold tnum" style={{ color: LEVEL_COLOR[k.level] }}>
                   {k.pct}%
                 </span>
               </div>
-              <div className="aa-track">
+              <div className="h-3 w-full overflow-hidden rounded-full bg-line/50">
                 <div
-                  className="aa-fill"
+                  className="h-full rounded-full transition-all duration-1000 ease-out"
                   style={{
                     width: `${shown ? k.pct : 0}%`,
                     background: LEVEL_COLOR[k.level],
+                    boxShadow: `0 0 10px ${LEVEL_COLOR[k.level]}80`,
                   }}
                 />
               </div>
@@ -267,32 +277,32 @@ function RaporView({
       </section>
 
       {/* feedback */}
-      <section className="grid gap-4 md:grid-cols-2">
-        <div className="aa-card p-5">
-          <p className="mb-2 flex items-center gap-2 font-display font-extrabold text-[var(--node-good)]">
-            <CheckCircle2 size={18} /> Yang sudah kuat
+      <section className="grid gap-4 sm:gap-5 md:grid-cols-2">
+        <div className="rounded-3xl border border-[var(--node-good)]/20 bg-[var(--node-good)]/5 p-6 shadow-sm">
+          <p className="mb-3 flex items-center gap-2 font-display text-[16px] font-black text-[var(--node-good)]">
+            <CheckCircle2 size={20} className="fill-[var(--node-good)]/20" /> Yang sudah kuat
           </p>
-          <p className="text-sm text-ink-soft">{data.kuat}</p>
+          <p className="text-[14px] font-medium leading-relaxed text-ink-soft">{data.kuat}</p>
         </div>
-        <div className="aa-card p-5">
-          <p className="mb-2 flex items-center gap-2 font-display font-extrabold text-[var(--node-weak)]">
-            <AlertTriangle size={18} /> Perlu diperkuat
+        <div className="rounded-3xl border border-[var(--node-weak)]/20 bg-[var(--node-weak)]/5 p-6 shadow-sm">
+          <p className="mb-3 flex items-center gap-2 font-display text-[16px] font-black text-[var(--node-weak)]">
+            <AlertTriangle size={20} className="fill-[var(--node-weak)]/20" /> Perlu diperkuat
           </p>
-          <p className="text-sm text-ink-soft">{data.lemah}</p>
+          <p className="text-[14px] font-medium leading-relaxed text-ink-soft">{data.lemah}</p>
         </div>
       </section>
 
       {/* rekomendasi */}
-      <section className="aa-card flex flex-col gap-3 p-5">
-        <p className="flex items-center gap-2 font-display font-extrabold">
-          <Lightbulb size={18} className="text-[var(--reward)]" /> Rekomendasi
+      <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
+        <p className="mb-3 flex items-center gap-2 font-display text-lg font-black text-ink">
+          <Lightbulb size={22} className="fill-[var(--reward)] text-[var(--reward)] drop-shadow-sm" /> Rekomendasi
         </p>
-        <p className="text-sm text-ink-soft">{data.rekomendasi}</p>
-        <div className="mt-1 flex flex-wrap gap-3">
-          <Link href="/belajar" className="aa-btn">
+        <p className="text-[14px] font-medium leading-relaxed text-ink-soft sm:text-[15px]">{data.rekomendasi}</p>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Link href="/belajar" className="aa-btn w-full justify-center sm:w-auto sm:px-8">
             Perkuat Materi <ArrowRight size={18} />
           </Link>
-          <button onClick={onRepeat} className="aa-btn-ghost">
+          <button onClick={onRepeat} className="aa-btn-ghost w-full justify-center sm:w-auto sm:px-6">
             <RotateCcw size={16} /> Ajari Lagi
           </button>
         </div>

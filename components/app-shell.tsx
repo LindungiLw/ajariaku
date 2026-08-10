@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Sun, Moon, Info, X } from "lucide-react";
+import { Info, X } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { A11yToggle } from "@/components/a11y-toggle";
 import { Star, Flame } from "@/components/brand-icons";
 import { IconBeranda, IconBelajar, IconAjari, IconKelas, IconProgres } from "@/components/nav-icons";
 import { useProfil } from "@/components/profil-pengajar";
@@ -29,11 +31,10 @@ function Logo() {
     <Link href="/beranda" className="flex min-w-0 shrink items-center gap-2.5">
       <span className="grid h-9 w-9 flex-none place-items-center overflow-hidden rounded-[11px] bg-white shadow-[0_8px_18px_-8px_rgba(21,145,220,.5)] ring-1 ring-line">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Ajari Aku" width={30} height={30} className="h-[26px] w-[26px]" />
+        <img src="/logo.png" alt="Icon Ajari Aku" width={30} height={30} className="h-[26px] w-[26px]" />
       </span>
-      <span className="truncate font-display text-lg font-extrabold tracking-tight text-ink">
-        Ajari Aku
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/ajariaku.png" alt="Ajari Aku" className="h-[80px] w-auto object-contain -my-[24px]" />
     </Link>
   );
 }
@@ -79,27 +80,7 @@ function StreakChip() {
   );
 }
 
-// Toggle tema cepat (Terang/Gelap): ganti 1 ketuk tanpa buka Profil.
-// Sumber kebenaran = atribut data-theme + localStorage "ajari-aku:tema" (sama dgn Profil > Tampilan).
-function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => setDark(isDark()), []);
-  function toggle() {
-    const next = !dark;
-    applyTema(next ? "dark" : "light");
-    setDark(next);
-  }
-  return (
-    <button
-      onClick={toggle}
-      aria-label={dark ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
-      title={dark ? "Tema terang" : "Tema gelap"}
-      className="grid h-9 w-9 flex-none place-items-center rounded-full border border-line bg-surface text-ink-soft transition-all hover:-translate-y-0.5 hover:border-[var(--primary)] hover:text-[var(--primary)]"
-    >
-      {dark ? <Sun size={17} /> : <Moon size={17} />}
-    </button>
-  );
-}
+// ThemeToggle is now imported from @/components/theme-toggle
 
 // Avatar murid pilihan saat login, tombol ke /profil.
 function ProfilButton() {
@@ -233,6 +214,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex flex-none items-center gap-2">
             <StreakChip />
             <XpStar />
+            <A11yToggle className="hidden sm:grid" />
             <ThemeToggle />
             <ProfilButton />
           </div>

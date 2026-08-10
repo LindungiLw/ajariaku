@@ -97,7 +97,19 @@ export default function KelasPage() {
               >
                 {pangkatMurid(m.xp ?? 0).nama}
               </span>
-              <IngatanBadge mem={mems[m.id]} nama={m.nama} />
+              
+              {/* Student Stat: XP Progress Bar */}
+              <div className="mt-2.5 w-full px-1">
+                <div className="flex w-full items-center justify-between px-0.5 text-[8px] font-bold text-ink-soft tnum">
+                  <span title="Total XP yang terkumpul">{m.xp ?? 0} XP</span>
+                  <span title={`Sisa ${levelInfo(m.xp ?? 0).need - levelInfo(m.xp ?? 0).into} XP ke Lv ${levelInfo(m.xp ?? 0).level + 1}`}>ke Lv {levelInfo(m.xp ?? 0).level + 1}</span>
+                </div>
+                <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-line" title={`${levelInfo(m.xp ?? 0).pct}% menuju level berikutnya`}>
+                  <div className="h-full rounded-full transition-all" style={{ width: `${levelInfo(m.xp ?? 0).pct}%`, background: "var(--reward)" }} />
+                </div>
+              </div>
+
+              <div className="mt-1 w-full"><IngatanBadge mem={mems[m.id]} nama={m.nama} /></div>
             </div>
           </div>
         ))}

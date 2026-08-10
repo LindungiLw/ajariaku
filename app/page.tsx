@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { BookOpen, TrendingUp, GraduationCap, BrainCircuit, ShieldCheck, Guest, Gift, Chat, Users, Report, Compass } from "@/components/brand-icons";
 import { Mascot } from "@/components/mascot";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { A11yToggle } from "@/components/a11y-toggle";
 
 const TRUST = [
   { icon: ShieldCheck, label: "Progres Tersimpan", note: "Login, aman & sinkron di cloud" },
@@ -68,11 +70,14 @@ export default function LandingPage() {
         <div className="flex items-center gap-2.5">
           <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-[14px] bg-white shadow-[0_8px_18px_-8px_rgba(21,145,220,.7)] ring-1 ring-line">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Ajari Aku" width={30} height={30} className="h-7 w-7" />
+            <img src="/logo.png" alt="Icon Ajari Aku" width={30} height={30} className="h-7 w-7" />
           </span>
-          <span className="font-display text-lg font-extrabold tracking-tight">
-            Ajari Aku
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/ajariaku.png" alt="Ajari Aku" className="h-[120px] w-auto object-contain -my-[40px]" />
+        </div>
+        <div className="flex items-center gap-2">
+          <A11yToggle />
+          <ThemeToggle />
         </div>
       </header>
 

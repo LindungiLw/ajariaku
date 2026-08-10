@@ -23,6 +23,7 @@ import { KATEGORI } from "@/lib/avatar";
 import { MuridPicker } from "@/components/murid-picker";
 import { KeliruCard } from "@/components/keliru-card";
 import { creditMurid, creditMuridXp, loadMurid, karakterForMurid, pangkatMurid, UTAMA_ID, type MuridKustom } from "@/lib/murid";
+import { ProseRich } from "@/components/math-rich";
 import { celebrate, celebrateDelta, celebrateBadges } from "@/lib/celebrate";
 import { materiById, type MateriRingkas } from "@/lib/materi";
 import { parseContoh, parseMiskonsepsi, type ContohSeg } from "@/lib/materi-parse";
@@ -531,50 +532,66 @@ export default function AjariPage() {
         <section className="relative flex min-w-0 flex-1 flex-col">
         <p className="sr-only" role="status" aria-live="polite">{typing ? `${murid} sedang mengetik…` : ""}</p>
 
-        <div className="flex-none border-b border-line px-3 pb-2.5 pt-2.5 sm:px-4">
-          <div className="mb-2 flex items-center gap-2">
-            <Mascot mood={typing ? "curious" : muridMood} size={32} avatar={muridAvatar} char={pengajar.muridChar} className="animate-float" />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <p className="truncate font-display text-sm font-extrabold leading-tight">{murid}</p>
-                <span
-                  className="flex-none rounded-full px-1.5 py-[1px] text-[9px] font-extrabold uppercase tracking-wide"
-                  style={
-                    isKelas
-                      ? { background: "var(--tint)", color: "var(--primary-deep)" }
-                      : { background: "color-mix(in srgb, var(--reward) 18%, transparent)", color: "var(--reward-ink)" }
-                  }
-                  title={isKelas ? "Murid kelasmu, level murid ini naik" : "Petualangan Pribadi (Pio), progres pribadimu"}
-                >
-                  {isKelas ? "Kelas" : "Petualangan"}
-                </span>
+        <div className="flex-none border-b border-line/60 bg-surface/50 px-3 pb-3 pt-3 backdrop-blur-md sm:px-4">
+          <div className="mb-3 flex items-center justify-between">
+            {/* Kiri: Info Murid & Mascot */}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-none">
+                <div className="absolute inset-0 rounded-full blur-md bg-[var(--primary)]/20" />
+                <Mascot mood={typing ? "curious" : muridMood} size={38} avatar={muridAvatar} char={pengajar.muridChar} className="relative z-10 animate-float" />
               </div>
-              {!done && (
-                <Link href="/belajar" className="text-[11px] font-bold text-[var(--primary)]">Ganti topik →</Link>
+              <div className="flex flex-col">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-display text-[15px] font-extrabold leading-tight text-ink">{murid}</p>
+                  <span
+                    className={`flex-none rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-sm ring-1 ring-inset ${
+                      isKelas
+                        ? "bg-[var(--primary)]/10 text-[var(--primary-deep)] ring-[var(--primary)]/20"
+                        : "bg-[var(--reward)]/10 text-[var(--reward-ink)] ring-[var(--reward)]/20"
+                    }`}
+                  >
+                    {isKelas ? "Kelas" : "Petualangan"}
+                  </span>
+                </div>
+                {!done && (
+                  <Link href="/belajar" className="mt-0.5 text-[11px] font-bold text-ink-soft transition-colors hover:text-[var(--primary)]">
+                    ← Ganti topik
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Kanan: XP, Progress & Aksi */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="hidden sm:block">
+                <ProgressDots idx={Math.min(soalIdx, totalSoal - 1)} total={totalSoal} />
+              </div>
+              
+              {demo && (
+                <span className="hidden rounded-full border border-[var(--reward)]/20 bg-[var(--reward)]/10 px-2.5 py-1 text-[11px] font-bold text-[var(--reward)] lg:inline-flex">
+                  Luring
+                </span>
+              )}
+              
+              <div className="relative flex flex-none items-center gap-1.5 rounded-full border border-[var(--primary)]/20 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary)]/5 px-3 py-1.5 font-display text-[13px] font-extrabold text-[var(--primary-deep)] shadow-sm">
+                <Star size={14} className="text-[var(--reward)] drop-shadow-sm" />
+                <span className="tnum">+{xp} XP</span>
+                {xpKey > 0 && (
+                  <span key={xpKey} className="animate-xpfloat pointer-events-none absolute -top-2 right-2 font-display text-[14px] font-black text-[var(--reward)] drop-shadow-sm">
+                    +{XP_PER_TURN}
+                  </span>
+                )}
+              </div>
+
+              {!done && teacherTurns >= 2 && (
+                <button
+                  onClick={() => setDone(true)}
+                  className="flex flex-none items-center gap-1.5 rounded-full bg-[var(--node-weak)]/10 px-3 py-1.5 text-[12px] font-bold text-[var(--node-weak)] transition-colors hover:bg-[var(--node-weak)] hover:text-white"
+                >
+                  <Flag size={14} /> Akhiri
+                </button>
               )}
             </div>
-            <ProgressDots idx={Math.min(soalIdx, totalSoal - 1)} total={totalSoal} />
-            {demo && (
-              <span className="flex-none rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: "color-mix(in srgb, var(--reward) 16%, transparent)", color: "var(--reward)" }}>
-                Mode luring
-              </span>
-            )}
-            <span className="relative flex flex-none items-center gap-1 rounded-full bg-[var(--tint)] px-2.5 py-1 font-display text-[13px] font-extrabold text-[var(--primary-deep)] tnum">
-              <Star size={13} /> +{xp}
-              {xpKey > 0 && (
-                <span key={xpKey} className="animate-xpfloat pointer-events-none absolute -top-1 right-2 font-display text-[13px] font-extrabold text-[var(--reward)]">
-                  +{XP_PER_TURN}
-                </span>
-              )}
-            </span>
-            {!done && teacherTurns >= 2 && (
-              <button
-                onClick={() => setDone(true)}
-                className="flex flex-none items-center gap-1 rounded-full border border-line px-2.5 py-1 text-[11px] font-bold text-ink-soft transition-colors hover:border-[var(--node-weak)] hover:text-[var(--node-weak)]"
-              >
-                <Flag size={12} /> Akhiri
-              </button>
-            )}
           </div>
 
           <div className="relative overflow-hidden rounded-2xl border border-[var(--primary)]/20 bg-surface p-3 text-center shadow-[0_8px_30px_-12px_rgba(21,145,220,0.25)] sm:p-4">
@@ -664,24 +681,48 @@ export default function AjariPage() {
         )}
 
         {done ? (
-          <div className="aa-card relative flex flex-none flex-col items-center gap-3 overflow-visible p-5 text-center">
-            <Konfeti count={20} colors={["#1591dc", "#4bb8fa", "#f5a524", "#22a06b", "#2c5ead"]} className="pointer-events-none absolute inset-0 overflow-visible" />
-            <span className="animate-pop grid h-12 w-12 place-items-center rounded-2xl bg-[var(--node-good)] text-white">
-              <CheckCircle2 size={26} />
-            </span>
-            <p className="font-display text-lg font-extrabold">{murid} sudah paham! Sesi selesai 🎉</p>
-            <p className="text-sm text-ink-soft">
+          <div className="relative mx-auto mt-4 flex w-full max-w-lg flex-none flex-col items-center gap-4 overflow-visible rounded-3xl border border-[var(--primary)]/20 bg-gradient-to-b from-surface to-surface-2 p-6 text-center shadow-[0_8px_30px_-12px_rgba(21,145,220,0.25)] sm:p-8">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-[var(--node-good)] to-transparent opacity-50" />
+            <Konfeti count={30} colors={["#1591dc", "#4bb8fa", "#f5a524", "#22a06b", "#2c5ead"]} className="pointer-events-none absolute inset-0 overflow-visible" />
+            
+            <div className="relative">
+              <div className="absolute inset-0 animate-ping rounded-full bg-[var(--node-good)] opacity-20" />
+              <span className="relative z-10 grid h-16 w-16 place-items-center rounded-2xl bg-[var(--node-good)] text-white shadow-[0_0_20px_rgba(34,160,107,0.4)] ring-4 ring-[var(--node-good)]/20">
+                <CheckCircle2 size={32} />
+              </span>
+            </div>
+
+            <div>
+              <h3 className="font-display text-2xl font-black tracking-tight text-ink">
+                {murid} sudah paham!
+              </h3>
+              <p className="mt-1.5 text-[14px] sm:text-[15px] font-medium text-ink-soft">
+                Sesi mengajar telah selesai dengan luar biasa.
+              </p>
+            </div>
+
+            <div className="my-2 flex w-full flex-col items-center justify-center rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line">
               {reteach ? (
-                <>Topik ini <b className="text-ink">sudah kamu kuasai</b>, XP tak ditambah lagi. Lihat Rapor Sesi.</>
+                <p className="text-[13px] sm:text-[14px] font-medium text-ink-soft">
+                  Topik ini <b className="text-ink">sudah kamu kuasai</b>, XP tidak ditambahkan lagi.
+                </p>
               ) : (
-                <>Kamu dapat <b className="text-[var(--reward-ink)]">+{shownXp} XP</b>. Lihat hasil pemahamanmu di Rapor Sesi.</>
+                <div className="flex flex-col items-center gap-1.5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--reward-ink)]">
+                    Imbalan Mengajar
+                  </p>
+                  <div className="flex items-center gap-2 font-display text-3xl font-black text-[var(--reward)] drop-shadow-sm">
+                    <Star size={28} className="fill-[var(--reward)]" /> +{shownXp} XP
+                  </div>
+                </div>
               )}
-            </p>
-            <div className="mt-1 flex flex-wrap justify-center gap-3">
-              <button onClick={() => setShowRapor(true)} className="aa-btn">
+            </div>
+
+            <div className="mt-2 flex w-full flex-col gap-2.5 sm:flex-row sm:justify-center">
+              <button onClick={() => setShowRapor(true)} className="aa-btn w-full justify-center sm:w-auto sm:px-8 sm:py-3 sm:text-[15px]">
                 Lihat Rapor Sesi <ArrowRight size={18} />
               </button>
-              <button onClick={reset} className="aa-btn-ghost">
+              <button onClick={reset} className="aa-btn-ghost w-full justify-center sm:w-auto sm:px-6">
                 <RotateCcw size={16} /> Ulangi
               </button>
             </div>
@@ -916,22 +957,22 @@ function PembahasanBody({ bantuan }: { bantuan: MateriRingkas }) {
         </div>
       ) : (
         <div className="rounded-xl border border-line bg-surface p-4">
-          <p className="whitespace-pre-line text-[13px] md:text-[14px] xl:text-[15px] leading-relaxed text-ink">{prettyMath(bantuan.contoh)}</p>
+          <ProseRich>{bantuan.contoh}</ProseRich>
         </div>
       )}
 
       {keliru && keliru.length > 0 && (
-        <details className="group mt-6" open={false}>
-          <summary className="flex cursor-pointer select-none list-none items-center gap-2.5 rounded-2xl bg-[color-mix(in_srgb,var(--node-mid)_8%,var(--surface))] px-4 py-3 transition-colors hover:bg-[color-mix(in_srgb,var(--node-mid)_15%,var(--surface))] [&::-webkit-details-marker]:hidden">
-            <div className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-[var(--node-mid)]/20 text-[var(--reward-ink)] shadow-sm">
-              <Flag size={15} />
+        <details className="group mt-6 rounded-2xl border border-line bg-surface shadow-sm open:pb-4" open={false}>
+          <summary className="flex cursor-pointer select-none list-none items-center gap-2.5 rounded-2xl px-4 py-3 transition-colors hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
+            <div className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-[var(--node-weak)]/10 text-[var(--node-weak)] shadow-sm ring-1 ring-[var(--node-weak)]/20">
+              <AlertTriangle size={15} />
             </div>
-            <span className="flex-1 font-display text-[13px] md:text-[14px] xl:text-[15px] font-extrabold text-[var(--reward-ink)]">
-              Awas! {keliru.length} Jebakan Umum
-            </span>
-            <ChevronDown size={16} className="text-[var(--reward-ink)]/70 transition-transform group-open:rotate-180" />
+            <h3 className="flex-1 font-display text-[13px] xl:text-[14px] font-extrabold text-ink">
+              {keliru.length} Kesalahan Umum
+            </h3>
+            <ChevronDown size={16} className="text-ink-soft transition-transform group-open:rotate-180" />
           </summary>
-          <div className="mt-3 flex flex-col gap-3">
+          <div className="flex flex-col gap-3 px-4 pt-2">
             {keliru.map((k, i) => (
               <KeliruCard key={i} text={k} />
             ))}

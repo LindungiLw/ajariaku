@@ -43,16 +43,15 @@ function pisahLangkah(text: string): Seg[] {
       const mLabel = raw.match(/^([^:=]{1,26}):\s*/);
       const label = mLabel ? mLabel[1].trim() + ":" : "";
       const body = (mLabel ? raw.slice(mLabel[0].length) : raw).trim();
-      // Klausa HITUNGAN yang layak dikotakkan: ada "=", diawali angka/kurung/akar (bukan kata
-      // seperti "Jadi"), BUKAN bullet "-" atau enumerasi "3) ", PENDEK, dan sedikit kata (anotasi
-      // pendek seperti "simpanan" masih boleh). Kalimat prosa panjang biar mengalir apa adanya.
+      // Klausa HITUNGAN yang layak dikotakkan: ada "=", diawali angka/kurung/akar/variabel (U,S,x,y dll)
+      // BUKAN bullet "-" atau enumerasi "3) ", dan sedikit kata (anotasi seperti "maka", "jadi").
       const kata = (body.match(/[A-Za-zÀ-ſ]{2,}/g) || []).length;
       const hitung =
         /=/.test(body) &&
-        /^[\d(√]/.test(body) &&
+        /^[\d(√A-Zxyzf]/i.test(body) &&
         !/^\d{1,2}[).]\s/.test(body) &&
-        body.length <= 42 &&
-        kata <= 2;
+        body.length <= 85 &&
+        kata <= 5;
       return { raw, label, body, hitung };
     });
 }
@@ -99,4 +98,50 @@ export function Hitung({ text }: { text: string }) {
     );
   }
   return <div className="flex flex-col gap-1.5">{rows}</div>;
+}
+
+// Format blok teks panjang (Materi) menjadi struktur rapi: Heading (semua kapital), List, Paragraf.
+export function ProseRich({ children }: { children: string }) {
+  if (!children) return null;
+  const lines = children.split("\n").filter((l) => l.trim().length > 0);
+  
+  return (
+    <div className="flex flex-col gap-3">
+      {lines.map((line, i) => {
+        const t = line.trim();
+        // Deteksi Heading: Jika huruf kapital semua dan bukan angka saja, min 4 char
+        const isHeading = t === t.toUpperCase() && /[A-Z]{3,}/.test(t);
+        // Deteksi List: dimulai dari "1. ", "1) ", atau "- "
+        const isList = /^(\d+[.)]|-)\s/.test(t);
+
+        if (isHeading) {
+          return (
+            <h3 key={i} className="mt-4 first:mt-0 font-display text-[15px] font-bold uppercase tracking-widest text-[var(--primary)]/90">
+              {t}
+            </h3>
+          );
+        }
+
+        if (isList) {
+          // Buat list item dengan indentasi gantung yang rapi
+          const match = t.match(/^(\d+[.)]|-)\s(.*)/);
+          if (match) {
+            return (
+              <div key={i} className="flex gap-2 text-[15px] leading-relaxed text-ink">
+                <span className="flex-none font-bold text-ink-soft opacity-80">{match[1]}</span>
+                <p className="min-w-0 flex-1"><MathRich>{match[2]}</MathRich></p>
+              </div>
+            );
+          }
+        }
+
+        // Paragraf biasa
+        return (
+          <p key={i} className="text-[15px] leading-relaxed text-ink">
+            <MathRich>{t}</MathRich>
+          </p>
+        );
+      })}
+    </div>
+  );
 }

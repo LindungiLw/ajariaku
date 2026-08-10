@@ -11,7 +11,7 @@ import { buildSesi } from "@/lib/sesi";
 import { muridForTopik, baseMuridForTopik } from "@/lib/kelas-topik";
 import { buildKursus, acakSeed, type Kartu } from "@/lib/kursus";
 import { prettyMath } from "@/lib/pretty-math";
-import { MathRich, Hitung } from "@/components/math-rich";
+import { MathRich, Hitung, ProseRich } from "@/components/math-rich";
 import { KeliruCard } from "@/components/keliru-card";
 import { parseContoh, parseMiskonsepsi, type ContohSeg } from "@/lib/materi-parse";
 import { resolveTopik } from "@/lib/topik";
@@ -172,22 +172,22 @@ function MateriView() {
               onSelesai={selesaikanMateri}
             />
           ) : (
-            <div className="rounded-2xl border p-3 text-center text-[13px] font-bold text-[var(--node-good)]" style={{ borderColor: "color-mix(in srgb, var(--node-good) 35%, transparent)", background: "color-mix(in srgb, var(--node-good) 8%, transparent)" }}>
+            <div className="rounded-2xl border border-emerald-400/40 bg-emerald-400/20 p-3 text-center text-[13px] font-bold text-emerald-100 shadow-sm backdrop-blur">
               Tahap Materi selesai ✅, lanjut ke Quiz di bawah.
             </div>
           )}
 
           {/* aksi sekunder, frosted putih biar terbaca di latar gelap */}
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => setLengkap(true)} className="flex min-w-[130px] flex-1 items-center justify-center gap-1.5 rounded-full border border-white/25 bg-white/5 py-2.5 text-[13px] font-bold text-white/90 backdrop-blur transition-colors hover:bg-white/10">
+            <button onClick={() => setLengkap(true)} className="flex min-w-[130px] flex-1 items-center justify-center gap-1.5 rounded-full border border-white/40 bg-white/20 py-2.5 text-[13px] font-bold text-white shadow-sm backdrop-blur transition-colors hover:bg-white/30">
               <BookOpen size={15} /> Materi lengkap
             </button>
             {qDone ? (
-              <button onClick={ajari} className="flex min-w-[130px] flex-1 items-center justify-center gap-1.5 rounded-full border border-white/25 bg-white/5 py-2.5 text-[13px] font-bold text-white/90 backdrop-blur transition-colors hover:bg-white/10">
+              <button onClick={ajari} className="flex min-w-[130px] flex-1 items-center justify-center gap-1.5 rounded-full border border-white/40 bg-white/20 py-2.5 text-[13px] font-bold text-white shadow-sm backdrop-blur transition-colors hover:bg-white/30">
                 <GraduationCap size={15} /> Ajari {mu.nama}
               </button>
             ) : (
-              <button disabled title="Lulus Quiz dulu untuk mengajari" className="flex min-w-[130px] flex-1 cursor-not-allowed items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 py-2.5 text-[13px] font-bold text-white/45 backdrop-blur">
+              <button disabled title="Lulus Quiz dulu untuk mengajari" className="flex min-w-[130px] flex-1 cursor-not-allowed items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-2.5 text-[13px] font-bold text-white/40 backdrop-blur">
                 <Lock size={14} /> Ajari {mu.nama}
               </button>
             )}
@@ -242,7 +242,7 @@ function MateriView() {
           <div role="tabpanel" className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
             {tab === "konsep" && (
               <div className="flex flex-col gap-3">
-                <p className="whitespace-pre-line text-base leading-relaxed text-ink"><MathRich>{konsepIntro}</MathRich></p>
+                <ProseRich>{konsepIntro}</ProseRich>
                 {adaLanjut && (
                   <div className="overflow-hidden rounded-xl border border-line">
                     <button
@@ -254,7 +254,7 @@ function MateriView() {
                       Perdalam: teori lengkap
                     </button>
                     {perdalam && (
-                      <p className="whitespace-pre-line border-t border-line px-3 py-3 text-[14px] leading-relaxed text-ink-soft"><MathRich>{m.konten}</MathRich></p>
+                      <div className="border-t border-line px-3 py-3"><ProseRich>{m.konten}</ProseRich></div>
                     )}
                   </div>
                 )}
@@ -271,7 +271,7 @@ function MateriView() {
                   ))}
                 </div>
               ) : (
-                <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink-soft">{prettyMath(m.miskonsepsi)}</p>
+                <ProseRich>{m.miskonsepsi}</ProseRich>
               ))}
           </div>
 
@@ -288,7 +288,7 @@ function MateriView() {
                 <ChevronDown size={15} className={`ml-auto flex-none transition-transform ${bekal ? "rotate-180" : ""}`} />
               </button>
               {bekal && (
-                <p className="mt-2 whitespace-pre-line px-1 text-[13px] leading-relaxed text-ink">{prettyMath(m.caraAjari)}</p>
+                <div className="mt-2 px-1"><ProseRich>{m.caraAjari}</ProseRich></div>
               )}
             </div>
           )}
@@ -373,7 +373,7 @@ function ContohBlok({ contohSegs, contohRaw }: { contohSegs: ContohSeg[] | null;
   if (!contohSegs)
     return (
       <div className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--tint)]/20 p-4">
-        <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">{prettyMath(contohRaw)}</p>
+        <ProseRich>{contohRaw}</ProseRich>
       </div>
     );
   return (
@@ -460,7 +460,7 @@ function BacaMateri({
         {cur === "konsep" && (
           <>
             <p className="flex items-center gap-1.5 text-[13px] font-extrabold text-[var(--primary-deep)]"><Info size={15} className="flex-none" /> Apa itu {namaKonsep}?</p>
-            <p className="mt-2 whitespace-pre-line text-[14.5px] leading-relaxed text-ink"><MathRich>{konten}</MathRich></p>
+            <div className="mt-3"><ProseRich>{konten}</ProseRich></div>
             {rumus.length > 0 && (
               <>
                 <p className="mb-1.5 mt-3 text-[11px] font-bold uppercase tracking-wider text-ink-soft">Rumus kunci</p>
@@ -542,21 +542,33 @@ function toMC(k: Kartu): MCItem | null {
 
 function CekPemahaman({ cards, onComplete }: { cards: MCItem[]; onComplete: () => void }) {
   const [answered, setAnswered] = useState<Record<number, boolean>>({});
-  const semua = Object.keys(answered).length >= cards.length;
+  const [attempt, setAttempt] = useState(0);
+
+  const terjawab = Object.keys(answered).length;
+  const semua = terjawab >= cards.length;
+  const lulus = semua && Object.values(answered).every(Boolean);
+
   useEffect(() => {
-    if (semua) onComplete();
+    if (lulus) onComplete();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [semua]);
+  }, [lulus]);
   return (
     <div className="rounded-2xl border border-line bg-surface p-4">
       <p className="font-display text-sm font-extrabold">Cek Pemahaman</p>
-      <p className="text-[12px] text-ink-soft">Jawab dulu untuk lanjut ke Quiz.</p>
+      <p className="text-[12px] text-ink-soft">Jawab dengan benar untuk lanjut ke Quiz.</p>
       <div className="mt-2 flex flex-col gap-4">
         {cards.map((c, i) => (
-          <MCQuestion key={i} item={c} onAnswer={(ok) => setAnswered((a) => ({ ...a, [i]: ok }))} />
+          <MCQuestion key={`${attempt}-${i}`} item={c} onAnswer={(ok) => setAnswered((a) => ({ ...a, [i]: ok }))} />
         ))}
       </div>
-      {semua && <p className="mt-3 text-[13px] font-bold text-[var(--node-good)]">Materi selesai, lanjut ke Quiz di bawah. ✅</p>}
+      {lulus && <p className="mt-3 text-[13px] font-bold text-[var(--node-good)]">Materi selesai, lanjut ke Quiz di bawah. ✅</p>}
+      {semua && !lulus && (
+        <div className="mt-3 rounded-xl border p-3 text-center" style={{ borderColor: "color-mix(in srgb, var(--node-weak) 35%, transparent)", background: "color-mix(in srgb, var(--node-weak) 8%, transparent)" }}>
+          <p className="text-[12px] font-bold text-ink">Ada jawaban yang belum tepat.</p>
+          <p className="mt-0.5 text-[11px] text-ink-soft">Pahami lagi materinya dan coba jawab ulang ya.</p>
+          <button onClick={() => { setAnswered({}); setAttempt(a => a + 1); }} className="aa-btn mt-2 w-full justify-center">Ulangi Cek Pemahaman <RotateCcw size={15} /></button>
+        </div>
+      )}
     </div>
   );
 }
@@ -569,11 +581,14 @@ function MCQuestion({ item, onAnswer }: { item: MCItem; onAnswer: (correct: bool
       {item.sudah && item.sudah.length > 0 && (
         <div className="mb-2 flex flex-col gap-0.5 rounded-xl bg-surface-2 p-2.5 text-[12px] text-ink-soft">
           {item.sudah.map((s, i) => (
-            <span key={i}>✓ {prettyMath(s)}</span>
+            <div key={i} className="flex gap-1.5">
+              <span className="mt-0.5 flex-none font-bold text-[var(--node-good)]">✓</span>
+              <div className="flex-1"><Hitung text={s} /></div>
+            </div>
           ))}
         </div>
       )}
-      <p className="text-[14px] font-semibold leading-snug text-ink">{prettyMath(item.q)}</p>
+      <div className="text-[14px] font-semibold leading-snug text-ink"><ProseRich>{item.q}</ProseRich></div>
       <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
         {opsi.map((o, i) => {
           const show = picked !== null;
@@ -593,15 +608,15 @@ function MCQuestion({ item, onAnswer }: { item: MCItem; onAnswer: (correct: bool
               onClick={() => { setPicked(o); onAnswer(benar); }}
               className={`rounded-xl border px-3.5 py-2.5 text-left text-[13px] font-semibold leading-snug transition-colors ${cls}`}
             >
-              {prettyMath(o)}
+              <MathRich>{o}</MathRich>
             </button>
           );
         })}
       </div>
       {picked !== null && picked !== item.benar && (
-        <p className="mt-1.5 text-[11.5px] leading-snug text-ink-soft">
-          Jawaban: <b className="text-ink">{prettyMath(item.benar)}</b>. {item.hint ? prettyMath(item.hint) : ""}
-        </p>
+        <div className="mt-1.5 text-[11.5px] leading-snug text-ink-soft">
+          Jawaban: <b className="text-ink"><MathRich>{item.benar}</MathRich></b>. {item.hint && <span className="mt-1 block"><MathRich>{item.hint}</MathRich></span>}
+        </div>
       )}
     </div>
   );
